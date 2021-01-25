@@ -24,7 +24,7 @@ const HOST: &str = "http://127.0.0.1:31416";
 
 #[tokio::test]
 async fn get_with_query_param() -> Result<(), Error> {
-    let server = server::http(move |req| async move {
+    let _server = server::http(move |req| async move {
         println!("req: {:#?}", req);
 
         assert_eq!(req.uri().path_and_query().unwrap().as_str(), "/path/sub?param1=1&param2=2&param3=hello");
@@ -44,7 +44,7 @@ async fn get_with_query_param() -> Result<(), Error> {
 
 #[tokio::test]
 async fn test_post_body() -> Result<(), Error> {
-    let server = server::http(move |req| async move {
+    let _server = server::http(move |req| async move {
         let body = req.body();
         let login = Login { id: 100, name: "".to_string(), password: "".to_string() };
 
@@ -79,7 +79,7 @@ async fn test2() -> Result<(), Error> {
     let resp: Result<ResA, Error> = reqb
         .send().await?.json().await;
 
-    let res = format!("{:#?}", resp);
+    println!("{:#?}", resp);
 
     Ok(())
 }

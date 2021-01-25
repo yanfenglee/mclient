@@ -37,7 +37,7 @@ pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
 
 #[proc_macro_attribute]
 pub fn get(args: TokenStream, item: TokenStream) -> TokenStream {
-    let mut input = syn::parse_macro_input!(item as syn::ItemFn);
+    let input = syn::parse_macro_input!(item as syn::ItemFn);
     let attrs = &input.attrs;
     let vis = &input.vis;
     let sig = &input.sig;
@@ -52,6 +52,8 @@ pub fn get(args: TokenStream, item: TokenStream) -> TokenStream {
     }
 
     let return_ty = find_return_type(&input);
+
+    println!("return type: {}", stringify!(#return_ty));
 
     let fn_args = get_fn_args(&input);
 
@@ -75,7 +77,7 @@ pub fn get(args: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    println!("............gen macro get:\n {}", stream);
+    println!("............gen macro get :\n {}", stream);
 
     stream.into()
 }
@@ -83,7 +85,7 @@ pub fn get(args: TokenStream, item: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn post(args: TokenStream, item: TokenStream) -> TokenStream {
-    let mut input = syn::parse_macro_input!(item as syn::ItemFn);
+    let input = syn::parse_macro_input!(item as syn::ItemFn);
     let attrs = &input.attrs;
     let vis = &input.vis;
     let sig = &input.sig;
@@ -117,7 +119,7 @@ pub fn post(args: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    println!("............gen macro post:\n {}", stream);
+    println!("............gen macro post2:\n {}", stream);
 
     stream.into()
 }
