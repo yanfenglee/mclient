@@ -1,5 +1,6 @@
 // mod route;
 extern crate proc_macro;
+
 use proc_macro::{TokenStream};
 use proc_macro2::{Ident, Span};
 
@@ -51,31 +52,56 @@ pub fn get(args: TokenStream, item: TokenStream) -> TokenStream {
             .into();
     }
 
-    let return_ty = find_return_type(&input);
-
-    println!("return type: {}", stringify!(#return_ty));
-
     let fn_args = get_fn_args(&input);
 
-    let stream = quote! {
+    let return_ty = find_return_type(&input);
 
-        #(#attrs)*
-        #vis #sig {
-            let path = format!("{}", #path);
-            let client = reqwest::Client::new();
+    let type_s = format!("{}", return_ty);
 
-            let mut reqb = client.get(&path);
+    println!("type_s = {}", type_s);
 
-            #(
-                reqb = reqb.query(&[(stringify!(#fn_args), #fn_args),]);
-            )*
+    let stream;
+    if type_s.starts_with("Result < String,") {
+        stream = quote! {
+
+            #(#attrs)*
+            #vis #sig {
+                let path = format!("{}", #path);
+                let client = reqwest::Client::new();
+
+                let mut reqb = client.get(&path);
+
+                #(
+                    reqb = reqb.query(&[(stringify!(#fn_args), #fn_args),]);
+                )*
 
 
-            let resp: #return_ty = reqb.send().await?.text().await;
+                let resp: #return_ty = reqb.send().await?.text().await;
 
-            resp
-        }
-    };
+                resp
+            }
+        };
+    } else {
+        stream = quote! {
+
+            #(#attrs)*
+            #vis #sig {
+                let path = format!("{}", #path);
+                let client = reqwest::Client::new();
+
+                let mut reqb = client.get(&path);
+
+                #(
+                    reqb = reqb.query(&[(stringify!(#fn_args), #fn_args),]);
+                )*
+
+
+                let resp: #return_ty = reqb.send().await?.json().await;
+
+                resp
+            }
+        };
+    }
 
     println!("............gen macro get :\n {}", stream);
 

@@ -1,6 +1,6 @@
+
 use mclient::{get,post};
-use reqwest::{Error, Client, Body};
-use std::collections::hash_map;
+use reqwest::{Error};
 use serde::{Serialize, Deserialize};
 
 mod support;
@@ -20,11 +20,9 @@ struct Login {
     password: String,
 }
 
-const HOST: &str = "http://127.0.0.1:31416";
-
 #[tokio::test]
 async fn get_with_query_param() -> Result<(), Error> {
-    let _server = server::http(move |req| async move {
+    let _server = server::http(31417, move |req| async move {
         println!("req: {:#?}", req);
 
         assert_eq!(req.uri().path_and_query().unwrap().as_str(), "/path/sub?param1=1&param2=2&param3=hello");
@@ -32,7 +30,7 @@ async fn get_with_query_param() -> Result<(), Error> {
         http::Response::new("Hello".into())
     });
 
-    #[get("http://127.0.0.1:31416/path/sub")]
+    #[get("http://127.0.0.1:31417/path/sub")]
     async fn get_test(param1: i32, param2: i64, param3: String) -> Result<String, Error> {}
 
     let res = get_test(1, 2, "hello".to_string()).await?;
@@ -44,15 +42,14 @@ async fn get_with_query_param() -> Result<(), Error> {
 
 #[tokio::test]
 async fn test_post_body() -> Result<(), Error> {
-    let _server = server::http(move |req| async move {
-        let body = req.body();
+    let _server = server::http(31418, move |_req| async move {
         let login = Login { id: 100, name: "".to_string(), password: "".to_string() };
 
         http::Response::new(serde_json::to_string(&login).unwrap().into())
     });
 
 
-    #[post("http://127.0.0.1:31416/login")]
+    #[post("http://127.0.0.1:31418/login")]
     async fn login(login: &Login) -> Result<Login, Error> {}
 
     let res = login(&Login{
@@ -108,7 +105,7 @@ async fn test4() -> Result<(), Error> {
 
 #[tokio::test]
 async fn user_agent() {
-    let server = server::http(move |req| async move {
+    let server = server::http(0, move |req| async move {
         assert_eq!(req.headers()["user-agent"], "reqwest-test-agent");
         http::Response::default()
     });
@@ -130,8 +127,7 @@ async fn user_agent() {
 
 #[tokio::test]
 async fn test_post() -> Result<(), Error> {
-    let server = server::http(move |req| async move {
-        let body = req.body();
+    let server = server::http(0, move |_req| async move {
         let login = Login { id: 100, name: "".to_string(), password: "".to_string() };
 
         http::Response::new(serde_json::to_string(&login).unwrap().into())
