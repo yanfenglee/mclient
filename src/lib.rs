@@ -58,8 +58,6 @@ pub fn get(args: TokenStream, item: TokenStream) -> TokenStream {
 
     let type_s = format!("{}", return_ty);
 
-    println!("type_s = {}", type_s);
-
     let stream;
     if type_s.starts_with("Result < String,") {
         stream = quote! {
@@ -126,22 +124,39 @@ pub fn post(args: TokenStream, item: TokenStream) -> TokenStream {
     }
 
     let return_ty = find_return_type(&input);
+    let type_s = format!("{}", return_ty);
 
     let fn_arg = get_fn_args(&input).get(0).expect("must have body").clone();
 
-    let stream = quote! {
+    let stream = if type_s.starts_with("Result < String,") {
+        quote! {
+            #(#attrs)*
+            #vis #sig {
+                let path = format!("{}", #path);
+                let client = reqwest::Client::new();
 
-        #(#attrs)*
-        #vis #sig {
-            let path = format!("{}", #path);
-            let client = reqwest::Client::new();
+                let mut reqb = client.get(&path);
+                reqb = reqb.json(#fn_arg);
 
-            let mut reqb = client.get(&path);
-            reqb = reqb.json(#fn_arg);
+                let resp: #return_ty = reqb.send().await?.text().await;
 
-            let resp: #return_ty = reqb.send().await?.json().await;
+                resp
+            }
+        }
+    } else {
+        quote! {
+            #(#attrs)*
+            #vis #sig {
+                let path = format!("{}", #path);
+                let client = reqwest::Client::new();
 
-            resp
+                let mut reqb = client.get(&path);
+                reqb = reqb.json(#fn_arg);
+
+                let resp: #return_ty = reqb.send().await?.json().await;
+
+                resp
+            }
         }
     };
 
