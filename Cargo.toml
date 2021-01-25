@@ -34,3 +34,7 @@ trybuild = { version = "1.0.19", features = ["diff"] }
 
 hyper = { version = "0.14", default-features = false, features = ["tcp", "stream", "http1", "http2", "client", "server"] }
 
+
+[[example]]
+name = "simple"
+path = "examples/simple.rs"
