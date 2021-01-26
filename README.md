@@ -31,3 +31,7 @@ async fn main() -> Result<(), Error> {
     Ok(())
 }
 ```
+
+## License
+
+This project is licensed under the [MIT license](LICENSE).
