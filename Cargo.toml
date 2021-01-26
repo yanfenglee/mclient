@@ -1,7 +1,7 @@
 [package]
 name = "mclient"
 version = "0.1.0"
-authors = ["yanfeng.li <yanfeng.li@yunqueyi.com>"]
+authors = ["yanfeng.li <86966524@qq.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
