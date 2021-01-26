@@ -1,8 +1,3 @@
-# mclient
-macro based http client for rust
-
-### examples
-```rust
 use mclient::{post};
 use reqwest::{Error};
 use serde::{Serialize};
@@ -30,4 +25,3 @@ async fn main() -> Result<(), Error> {
 
     Ok(())
 }
-```

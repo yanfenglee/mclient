@@ -133,7 +133,7 @@ pub(crate) fn post_impl(args: TokenStream, item: TokenStream) -> TokenStream {
                 let path = format!("{}", #path);
                 let client = reqwest::Client::new();
 
-                let mut reqb = client.get(&path);
+                let mut reqb = client.post(&path);
                 reqb = reqb.json(#fn_arg);
 
                 let resp: #return_ty = reqb.send().await?.text().await;
@@ -148,7 +148,7 @@ pub(crate) fn post_impl(args: TokenStream, item: TokenStream) -> TokenStream {
                 let path = format!("{}", #path);
                 let client = reqwest::Client::new();
 
-                let mut reqb = client.get(&path);
+                let mut reqb = client.post(&path);
                 reqb = reqb.json(#fn_arg);
 
                 let resp: #return_ty = reqb.send().await?.json().await;
