@@ -1,7 +1,14 @@
 [package]
 name = "mclient"
 version = "0.1.0"
+keywords = ["http", "request", "client"]
+categories = ["web-programming::http-client"]
+repository = "https://github.com/yanfenglee/mclient"
+documentation = "https://docs.rs/mclient"
 authors = ["yanfeng.li <86966524@qq.com>"]
+description = "macro based http client"
+readme = "README.md"
+license = "MIT"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
