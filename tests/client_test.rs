@@ -9,6 +9,7 @@ use support::*;
 
 #[derive(Deserialize, Serialize, Debug)]
 struct ResA {
+    #[serde(rename="origin")]
     origin: String,
 }
 
@@ -30,7 +31,7 @@ async fn get_with_query_param() -> Result<(), Error> {
     });
 
     #[get("http://127.0.0.1:31417/path/sub")]
-    async fn get_test(param1: i32, param2: i64, param3: String) -> Result<String, Error> {}
+    async fn get_test(#[path(name="pathtest")]param1: i32, #[header(name2="x-token")]param2: i64, param3: String) -> Result<String, Error> {}
 
     let res = get_test(1, 2, "hello".to_string()).await?;
 

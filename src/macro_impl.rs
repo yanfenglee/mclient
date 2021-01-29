@@ -6,14 +6,26 @@ use proc_macro2::{Ident, Span};
 
 use quote::{quote, ToTokens};
 use syn::{ItemFn, FnArg, ReturnType};
+use crate::utils::parse_fn_args;
 
 
 pub(crate) fn get_fn_args(target_fn: &ItemFn) -> Vec<Ident> {
+    let aa = parse_fn_args(target_fn);
+
+    for a in aa {
+        println!("test: {:?}", a);
+    }
+
     let mut fn_arg_ident_vec = vec![];
     for arg in &target_fn.sig.inputs {
         match arg {
             FnArg::Typed(t) => {
                 let arg_name = format!("{}", t.pat.to_token_stream());
+
+                if let [att,..] = t.attrs.as_slice() {
+                    println!("arg attrs: {:?}", att);
+                }
+
                 let ident = Ident::new(&arg_name, Span::call_site());
                 fn_arg_ident_vec.push(ident);
             }
@@ -38,7 +50,7 @@ pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
 
 
 pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
-    let input = syn::parse_macro_input!(item as syn::ItemFn);
+    let mut input = syn::parse_macro_input!(item as syn::ItemFn);
     let attrs = &input.attrs;
     let vis = &input.vis;
     let sig = &input.sig;
