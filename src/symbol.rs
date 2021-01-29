@@ -1,7 +1,7 @@
 use std::fmt::{self, Display};
 use syn::{Ident, Path};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Symbol(&'static str);
 
 pub const HEADER: Symbol = Symbol("header");

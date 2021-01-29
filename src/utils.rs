@@ -10,7 +10,6 @@ use syn::Meta::List;
 
 
 pub(crate) fn parse_fn_args(item: &ItemFn) -> Vec<ReqArgAttr> {
-
     let mut attrs = Vec::new();
 
     for arg in &item.sig.inputs {
@@ -24,51 +23,61 @@ pub(crate) fn parse_fn_args(item: &ItemFn) -> Vec<ReqArgAttr> {
 
 #[derive(Debug)]
 pub(crate) struct ReqArgAttr {
-    path1: Option<syn::Path>,
-    path2: Option<syn::Path>,
+    path1: Option<Symbol>,
+    path2: Option<Symbol>,
     value: String,
     var: syn::Ident,
 }
 
-pub(crate) fn parse_one_arg(arg: &FnArg) -> Option<ReqArgAttr>{
+pub(crate) fn to_symbol(path: &syn::Path) -> Option<Symbol> {
+    if path == HEADER {
+        Some(HEADER)
+    } else if path == PATH {
+        Some(PATH)
+    } else if path == PARAM {
+        Some(PARAM)
+    } else {
+        None
+    }
+}
+
+pub(crate) fn parse_one_arg(arg: &FnArg) -> Option<ReqArgAttr> {
     if let FnArg::Typed(pat) = arg {
         let var_name = format!("{}", pat.to_token_stream());
         let ident = Ident::new("aaa", Span::call_site());
 
-        for meta_item in pat.attrs.iter()
-            .flat_map(|attr| {
-                println!("attr path: {:?}", attr.path);
-                if attr.path == HEADER {
-                    println!("++++++++++header")
-                }
-                get_meta_items(attr)
-            })
-            .flatten() {
+        for att in pat.attrs.iter() {
+            println!("attr path: {:?}", att.path);
+            if att.path == HEADER {
+                println!("++++++++++header")
+            }
 
-            match &meta_item {
-                Meta(NameValue(m)) => {
-                    if let syn::Lit::Str(lit) = &m.lit {
-                        return Some(ReqArgAttr {
-                            path1: None,
-                            path2: Some(m.path.clone()),
-                            value: lit.value(),
-                            var: ident,
-                        });
+            for meta_item in get_meta_items(att).unwrap() {
+                match &meta_item {
+                    Meta(NameValue(m)) => {
+                        if let syn::Lit::Str(lit) = &m.lit {
+                            return Some(ReqArgAttr {
+                                path1: to_symbol(&att.path),
+                                path2: to_symbol(&m.path),
+                                value: lit.value(),
+                                var: ident,
+                            });
+                        }
                     }
-                },
-                Lit(lit) => {
-                    if let syn::Lit::Str(lit) = &lit {
-                        return Some(ReqArgAttr {
-                            path1: None,
-                            path2: None,
-                            value: lit.value(),
-                            var: ident
-                        });
+                    Lit(lit) => {
+                        if let syn::Lit::Str(lit) = &lit {
+                            return Some(ReqArgAttr {
+                                path1: to_symbol(&att.path),
+                                path2: None,
+                                value: lit.value(),
+                                var: ident,
+                            });
+                        }
                     }
-                },
 
-                _ => {
-                    println!("unknown: {:#?}", meta_item);
+                    _ => {
+                        println!("unknown: {:#?}", meta_item);
+                    }
                 }
             }
         }
