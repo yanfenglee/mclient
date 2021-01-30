@@ -5,6 +5,8 @@ use serde::{Serialize, Deserialize};
 mod support;
 
 use support::*;
+use http::Method;
+use url::Url;
 
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -156,6 +158,35 @@ async fn test_post() -> Result<(), Error> {
         .post(&url);
 
     let res: Login = client
+        .json(&Login::default())
+        .send()
+        .await?
+        .json()
+        .await?;
+
+    assert_eq!(res.id, 100);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_request_raw() -> Result<(), Error> {
+    let server = server::http(0, move |_req| async move {
+        let login = Login { id: 100, name: "".to_string(), password: "".to_string() };
+
+        http::Response::new(serde_json::to_string(&login).unwrap().into())
+    });
+
+    let url = format!("http://{}/ua", server.addr());
+    let mut reqb = reqwest::Client::builder()
+        .build()
+        .expect("client builder")
+        .request(Method::POST, Url::parse(url.as_str()).unwrap());
+
+    reqb = reqb.header("token", "tokenxxx");
+    reqb = reqb.query(&[("a", 3), ("b", 4), ]);
+
+    let res: Login = reqb
         .json(&Login::default())
         .send()
         .await?

@@ -1,6 +1,7 @@
 mod macro_impl;
 mod utils;
 mod symbol;
+mod macro_impl2;
 
 use proc_macro::{TokenStream};
 
@@ -14,8 +15,13 @@ pub fn get(args: TokenStream, item: TokenStream) -> TokenStream {
 pub fn post(args: TokenStream, item: TokenStream) -> TokenStream {
     macro_impl::post_impl(args, item)
 }
-//
-// #[proc_macro_attribute]
-// pub fn header(_args: TokenStream, item: TokenStream) -> TokenStream {
-//     item
-// }
+
+#[proc_macro_attribute]
+pub fn get2(args: TokenStream, item: TokenStream) -> TokenStream {
+    macro_impl2::get_impl(args, item)
+}
+
+#[proc_macro_attribute]
+pub fn post2(args: TokenStream, item: TokenStream) -> TokenStream {
+    macro_impl2::post_impl(args, item)
+}

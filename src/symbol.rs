@@ -7,6 +7,8 @@ pub struct Symbol(&'static str);
 pub const HEADER: Symbol = Symbol("header");
 pub const PARAM: Symbol = Symbol("param");
 pub const PATH: Symbol = Symbol("path");
+pub const BODY: Symbol = Symbol("body");
+
 
 impl PartialEq<Symbol> for Ident {
     fn eq(&self, word: &Symbol) -> bool {

@@ -1,5 +1,5 @@
 use syn::{Attribute, ItemFn, FnArg, NestedMeta::Meta, NestedMeta::Lit};
-use crate::symbol::{PATH, HEADER, PARAM, Symbol};
+use crate::symbol::{PATH, HEADER, PARAM, Symbol, BODY};
 use proc_macro2::{Ident, Span};
 use quote::ToTokens;
 use syn::Meta::NameValue;
@@ -36,13 +36,14 @@ pub(crate) fn to_symbol(path: &syn::Path) -> Option<Symbol> {
         Some(PATH)
     } else if path == PARAM {
         Some(PARAM)
+    } else if path == BODY {
+        Some(BODY)
     } else {
         None
     }
 }
 
 pub(crate) fn parse_one_arg(arg: &mut FnArg) -> Option<ReqArgAttr> {
-
     let mut container = Vec::new();
 
     if let FnArg::Typed(pat) = arg {
@@ -55,26 +56,28 @@ pub(crate) fn parse_one_arg(arg: &mut FnArg) -> Option<ReqArgAttr> {
                 println!("++++++++++header")
             }
 
+            let mut req_arg = ReqArgAttr {
+                path1: to_symbol(&att.path),
+                path2: None,
+                value: var_name.clone(),
+                var: ident.clone(),
+            };
+
             for meta_item in get_meta_items(att).unwrap() {
                 match &meta_item {
                     Meta(NameValue(m)) => {
                         if let syn::Lit::Str(lit) = &m.lit {
-                            container.push(ReqArgAttr {
-                                path1: to_symbol(&att.path),
-                                path2: to_symbol(&m.path),
-                                value: lit.value(),
-                                var: ident.clone(),
-                            });
+                            req_arg.value = lit.value();
+                            req_arg.path2 = to_symbol(&m.path);
+                            break;
                         }
                     }
+
                     Lit(lit) => {
                         if let syn::Lit::Str(lit) = &lit {
-                            container.push(ReqArgAttr {
-                                path1: to_symbol(&att.path),
-                                path2: None,
-                                value: lit.value(),
-                                var: ident.clone(),
-                            });
+                            req_arg.value = lit.value();
+                            req_arg.path2 = None;
+                            break;
                         }
                     }
 
@@ -83,6 +86,8 @@ pub(crate) fn parse_one_arg(arg: &mut FnArg) -> Option<ReqArgAttr> {
                     }
                 }
             }
+
+            container.push(req_arg);
         }
 
         println!("begin process *************************");
@@ -91,8 +96,11 @@ pub(crate) fn parse_one_arg(arg: &mut FnArg) -> Option<ReqArgAttr> {
             println!("before retain: {:?}", att);
         }
 
-        pat.attrs.retain(|x| x.path != HEADER && x.path != PARAM && x.path != PATH);
-        pat.attrs.clear();
+        pat.attrs.retain(|x| x.path != HEADER &&
+            x.path != PARAM &&
+            x.path != PATH &&
+            x.path != BODY);
+        //pat.attrs.clear();
 
         for att in &pat.attrs {
             println!("after retain: {:?}", att);
