@@ -52,6 +52,7 @@ async fn get_with_query_param() -> Result<(), Error> {
 async fn get_with_query_param2() -> Result<(), Error> {
     let _server = server::http(31417, move |req| async move {
         assert_eq!(req.uri().path_and_query().unwrap().as_str(), "/path/sub?param1=1&param2=2&param3=hello");
+        assert_eq!(req.headers().get("token").unwrap(), "xxx");
 
         let login = Login { id: 100, name: "".to_string(), password: "".to_string() };
 
@@ -59,9 +60,9 @@ async fn get_with_query_param2() -> Result<(), Error> {
     });
 
     #[get2("http://127.0.0.1:31417/path/sub")]
-    async fn get_test2(#[param]param1: i32, #[param]param2: i64, #[param]param3: String) -> Result<Login, Error> {}
+    async fn get_test2(#[param("param1")]param1: i32, #[param]param2: i64, #[param]param3: String, #[header]token: String) -> Result<Login, Error> {}
 
-    let res = get_test2(1, 2, "hello".to_string()).await?;
+    let res = get_test2(1, 2, "hello".to_string(), "xxx".to_string()).await?;
     assert_eq!(res.id, 100);
 
     Ok(())

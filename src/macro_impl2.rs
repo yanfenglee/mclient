@@ -71,8 +71,15 @@ pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
             .into();
     }
 
-    let header_name = fn_args.iter()
-        .filter(|x| x.path1 == HEADER );
+    let header_name: Vec<String> = fn_args.iter()
+        .filter(|x| x.path1 == HEADER )
+        .map(|x| x.value.clone())
+        .collect();
+
+    let header_value: Vec<syn::Ident> = fn_args.iter()
+        .filter(|x| x.path1 == HEADER )
+        .map(|x| x.var.clone())
+        .collect();
 
     let param_name: Vec<String> = fn_args.iter()
         .filter(|x| x.path1 == PARAM )
@@ -93,6 +100,10 @@ pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
             let client = reqwest::Client::new();
 
             let mut reqb = client.get(&path);
+
+            #(
+                reqb = reqb.header(#header_name, #header_value);
+            )*
 
             #(
                 reqb = reqb.query(&[(#param_name, #param_value),]);
