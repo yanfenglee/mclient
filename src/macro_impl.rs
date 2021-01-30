@@ -9,7 +9,7 @@ use syn::{ItemFn, FnArg, ReturnType};
 use crate::utils::parse_fn_args;
 
 
-pub(crate) fn get_fn_args(target_fn: &ItemFn) -> Vec<Ident> {
+pub(crate) fn get_fn_args(target_fn: &mut ItemFn) -> Vec<Ident> {
     let aa = parse_fn_args(target_fn);
 
     for a in aa {
@@ -51,6 +51,12 @@ pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
 
 pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
     let mut input = syn::parse_macro_input!(item as syn::ItemFn);
+
+
+    let fn_args = get_fn_args(&mut input);
+
+    let return_ty = find_return_type(&input);
+
     let attrs = &input.attrs;
     let vis = &input.vis;
     let sig = &input.sig;
@@ -63,10 +69,6 @@ pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
             .to_compile_error()
             .into();
     }
-
-    let fn_args = get_fn_args(&input);
-
-    let return_ty = find_return_type(&input);
 
     let type_s = format!("{}", return_ty);
 
@@ -119,7 +121,11 @@ pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 pub(crate) fn post_impl(args: TokenStream, item: TokenStream) -> TokenStream {
-    let input = syn::parse_macro_input!(item as syn::ItemFn);
+    let mut input = syn::parse_macro_input!(item as syn::ItemFn);
+
+
+    let fn_arg = get_fn_args(&mut input).get(0).expect("must have body").clone();
+
     let attrs = &input.attrs;
     let vis = &input.vis;
     let sig = &input.sig;
@@ -135,8 +141,6 @@ pub(crate) fn post_impl(args: TokenStream, item: TokenStream) -> TokenStream {
 
     let return_ty = find_return_type(&input);
     let type_s = format!("{}", return_ty);
-
-    let fn_arg = get_fn_args(&input).get(0).expect("must have body").clone();
 
     let stream = if type_s.starts_with("Result < String,") {
         quote! {

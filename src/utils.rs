@@ -9,10 +9,10 @@ use syn::Meta::List;
 /// arg attrs: Attribute { pound_token: Pound, style: Outer, bracket_token: Bracket, path: Path { leading_colon: None, segments: [PathSegment { ident: Ident { ident: "header", span: #0 bytes(834..840) }, arguments: None }] }, tokens: TokenStream [Group { delimiter: Parenthesis, stream: TokenStream [Literal { kind: Str, symbol: "x-token", suffix: None, span: #0 bytes(841..850) }], span: #0 bytes(840..851) }] }
 
 
-pub(crate) fn parse_fn_args(item: &ItemFn) -> Vec<ReqArgAttr> {
+pub(crate) fn parse_fn_args(item: &mut ItemFn) -> Vec<ReqArgAttr> {
     let mut attrs = Vec::new();
 
-    for arg in &item.sig.inputs {
+    for arg in &mut item.sig.inputs {
         if let Some(arg_attr) = parse_one_arg(arg) {
             attrs.push(arg_attr);
         }
@@ -21,7 +21,7 @@ pub(crate) fn parse_fn_args(item: &ItemFn) -> Vec<ReqArgAttr> {
     attrs
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct ReqArgAttr {
     path1: Option<Symbol>,
     path2: Option<Symbol>,
@@ -41,7 +41,10 @@ pub(crate) fn to_symbol(path: &syn::Path) -> Option<Symbol> {
     }
 }
 
-pub(crate) fn parse_one_arg(arg: &FnArg) -> Option<ReqArgAttr> {
+pub(crate) fn parse_one_arg(arg: &mut FnArg) -> Option<ReqArgAttr> {
+
+    let mut container = Vec::new();
+
     if let FnArg::Typed(pat) = arg {
         let var_name = format!("{}", pat.to_token_stream());
         let ident = Ident::new("aaa", Span::call_site());
@@ -56,21 +59,21 @@ pub(crate) fn parse_one_arg(arg: &FnArg) -> Option<ReqArgAttr> {
                 match &meta_item {
                     Meta(NameValue(m)) => {
                         if let syn::Lit::Str(lit) = &m.lit {
-                            return Some(ReqArgAttr {
+                            container.push(ReqArgAttr {
                                 path1: to_symbol(&att.path),
                                 path2: to_symbol(&m.path),
                                 value: lit.value(),
-                                var: ident,
+                                var: ident.clone(),
                             });
                         }
                     }
                     Lit(lit) => {
                         if let syn::Lit::Str(lit) = &lit {
-                            return Some(ReqArgAttr {
+                            container.push(ReqArgAttr {
                                 path1: to_symbol(&att.path),
                                 path2: None,
                                 value: lit.value(),
-                                var: ident,
+                                var: ident.clone(),
                             });
                         }
                     }
@@ -81,6 +84,23 @@ pub(crate) fn parse_one_arg(arg: &FnArg) -> Option<ReqArgAttr> {
                 }
             }
         }
+
+        println!("begin process *************************");
+
+        for att in &pat.attrs {
+            println!("before retain: {:?}", att);
+        }
+
+        pat.attrs.retain(|x| x.path != HEADER && x.path != PARAM && x.path != PATH);
+        pat.attrs.clear();
+
+        for att in &pat.attrs {
+            println!("after retain: {:?}", att);
+        }
+    };
+
+    if let Some(res) = container.first() {
+        return Some(res.clone());
     }
 
     None
