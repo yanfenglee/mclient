@@ -23,10 +23,10 @@ pub(crate) fn parse_fn_args(item: &mut ItemFn) -> Vec<ReqArgAttr> {
 
 #[derive(Debug, Clone)]
 pub(crate) struct ReqArgAttr {
-    path1: Option<Symbol>,
-    path2: Option<Symbol>,
-    value: String,
-    var: syn::Ident,
+    pub path1: Symbol,
+    pub path2: Option<Symbol>,
+    pub value: String,
+    pub var: syn::Ident,
 }
 
 pub(crate) fn to_symbol(path: &syn::Path) -> Option<Symbol> {
@@ -60,7 +60,7 @@ pub(crate) fn parse_one_arg(arg: &mut FnArg) -> Option<ReqArgAttr> {
             }
 
             let mut req_arg = ReqArgAttr {
-                path1: to_symbol(&att.path),
+                path1: to_symbol(&att.path)?,
                 path2: None,
                 value: var_name.clone(),
                 var: ident.clone(),

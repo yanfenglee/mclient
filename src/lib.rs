@@ -20,8 +20,8 @@ pub fn post(args: TokenStream, item: TokenStream) -> TokenStream {
 pub fn get2(args: TokenStream, item: TokenStream) -> TokenStream {
     macro_impl2::get_impl(args, item)
 }
-
-#[proc_macro_attribute]
-pub fn post2(args: TokenStream, item: TokenStream) -> TokenStream {
-    macro_impl2::post_impl(args, item)
-}
+//
+// #[proc_macro_attribute]
+// pub fn post2(args: TokenStream, item: TokenStream) -> TokenStream {
+//     macro_impl2::post_impl(args, item)
+// }

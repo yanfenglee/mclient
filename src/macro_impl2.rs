@@ -7,6 +7,7 @@ use proc_macro2::{Ident, Span};
 use quote::{quote, ToTokens};
 use syn::{ItemFn, FnArg, ReturnType};
 use crate::utils::parse_fn_args;
+use crate::symbol::{HEADER, PARAM};
 
 
 pub(crate) fn get_fn_args(target_fn: &mut ItemFn) -> Vec<Ident> {
@@ -70,6 +71,19 @@ pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
             .into();
     }
 
+    let header_name = fn_args.iter()
+        .filter(|x| x.path1 == HEADER );
+
+    let param_name: Vec<String> = fn_args.iter()
+        .filter(|x| x.path1 == PARAM )
+        .map(|x| x.value.clone())
+        .collect();
+
+    let param_value: Vec<syn::Ident> = fn_args.iter()
+        .filter(|x| x.path1 == PARAM )
+        .map(|x| x.var.clone())
+        .collect();
+
     //let header = fn_args.
     let stream = quote! {
 
@@ -80,9 +94,9 @@ pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
 
             let mut reqb = client.get(&path);
 
-            // #(
-            //     reqb = reqb.query(&[(stringify!(#fn_args.var), #fn_args.var),]);
-            // )*
+            #(
+                reqb = reqb.query(&[(#param_name, #param_value),]);
+            )*
 
 
             let resp: #return_ty = reqb.send().await?.json().await;
@@ -92,65 +106,6 @@ pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     println!("............gen macro get :\n {}", stream);
-
-    stream.into()
-}
-
-pub(crate) fn post_impl(args: TokenStream, item: TokenStream) -> TokenStream {
-    let mut input = syn::parse_macro_input!(item as syn::ItemFn);
-
-
-    let fn_arg = get_fn_args(&mut input).get(0).expect("must have body").clone();
-
-    let attrs = &input.attrs;
-    let vis = &input.vis;
-    let sig = &input.sig;
-
-    let args = syn::parse_macro_input!(args as syn::AttributeArgs);
-    let path = args.get(0).unwrap().to_token_stream();
-
-    if sig.asyncness.is_none() {
-        return syn::Error::new_spanned(sig.fn_token, "only async fn is supported")
-            .to_compile_error()
-            .into();
-    }
-
-    let return_ty = find_return_type(&input);
-    let type_s = format!("{}", return_ty);
-
-    let stream = if type_s.starts_with("Result < String,") {
-        quote! {
-            #(#attrs)*
-            #vis #sig {
-                let path = format!("{}", #path);
-                let client = reqwest::Client::new();
-
-                let mut reqb = client.post(&path);
-                reqb = reqb.json(#fn_arg);
-
-                let resp: #return_ty = reqb.send().await?.text().await;
-
-                resp
-            }
-        }
-    } else {
-        quote! {
-            #(#attrs)*
-            #vis #sig {
-                let path = format!("{}", #path);
-                let client = reqwest::Client::new();
-
-                let mut reqb = client.post(&path);
-                reqb = reqb.json(#fn_arg);
-
-                let resp: #return_ty = reqb.send().await?.json().await;
-
-                resp
-            }
-        }
-    };
-
-    println!("............gen macro post2:\n {}", stream);
 
     stream.into()
 }

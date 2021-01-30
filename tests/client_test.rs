@@ -1,4 +1,4 @@
-use mclient::{get, post};
+use mclient::{get, post, get2};
 use reqwest::{Error};
 use serde::{Serialize, Deserialize};
 
@@ -41,6 +41,25 @@ async fn get_with_query_param() -> Result<(), Error> {
 
     #[get("http://127.0.0.1:31417/path/sub")]
     async fn get_test2(param1: i32, param2: i64, param3: String) -> Result<Login, Error> {}
+
+    let res = get_test2(1, 2, "hello".to_string()).await?;
+    assert_eq!(res.id, 100);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn get_with_query_param2() -> Result<(), Error> {
+    let _server = server::http(31417, move |req| async move {
+        assert_eq!(req.uri().path_and_query().unwrap().as_str(), "/path/sub?param1=1&param2=2&param3=hello");
+
+        let login = Login { id: 100, name: "".to_string(), password: "".to_string() };
+
+        http::Response::new(serde_json::to_string(&login).unwrap().into())
+    });
+
+    #[get2("http://127.0.0.1:31417/path/sub")]
+    async fn get_test2(#[param]param1: i32, #[param]param2: i64, #[param]param3: String) -> Result<Login, Error> {}
 
     let res = get_test2(1, 2, "hello".to_string()).await?;
     assert_eq!(res.id, 100);
