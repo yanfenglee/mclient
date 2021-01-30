@@ -26,6 +26,8 @@ pub(crate) fn get_fn_args(target_fn: &mut ItemFn) -> Vec<Ident> {
                     println!("arg attrs: {:?}", att);
                 }
 
+                println!("---- argname {}", arg_name);
+
                 let ident = Ident::new(&arg_name, Span::call_site());
                 fn_arg_ident_vec.push(ident);
             }

@@ -46,11 +46,14 @@ pub(crate) fn to_symbol(path: &syn::Path) -> Option<Symbol> {
 pub(crate) fn parse_one_arg(arg: &mut FnArg) -> Option<ReqArgAttr> {
     let mut container = Vec::new();
 
-    if let FnArg::Typed(pat) = arg {
-        let var_name = format!("{}", pat.to_token_stream());
-        let ident = Ident::new("aaa", Span::call_site());
+    if let FnArg::Typed(pt) = arg {
+        let attrs = pt.attrs.clone();
+        pt.attrs.clear();
 
-        for att in pat.attrs.iter() {
+        let var_name = format!("{}", pt.pat.to_token_stream());
+        let ident = Ident::new(&var_name, Span::call_site());
+
+        for att in attrs.iter() {
             println!("attr path: {:?}", att.path);
             if att.path == HEADER {
                 println!("++++++++++header")
@@ -90,21 +93,6 @@ pub(crate) fn parse_one_arg(arg: &mut FnArg) -> Option<ReqArgAttr> {
             container.push(req_arg);
         }
 
-        println!("begin process *************************");
-
-        for att in &pat.attrs {
-            println!("before retain: {:?}", att);
-        }
-
-        pat.attrs.retain(|x| x.path != HEADER &&
-            x.path != PARAM &&
-            x.path != PATH &&
-            x.path != BODY);
-        //pat.attrs.clear();
-
-        for att in &pat.attrs {
-            println!("after retain: {:?}", att);
-        }
     };
 
     if let Some(res) = container.first() {
