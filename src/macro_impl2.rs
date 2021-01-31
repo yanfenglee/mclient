@@ -11,34 +11,6 @@ use crate::symbol::{HEADER, PARAM, BODY};
 use http::Method;
 use std::str::FromStr;
 
-
-pub(crate) fn get_fn_args(target_fn: &mut ItemFn) -> Vec<Ident> {
-    let aa = parse_fn_args(target_fn);
-
-    for a in aa {
-        println!("test: {:?}", a);
-    }
-
-    let mut fn_arg_ident_vec = vec![];
-    for arg in &target_fn.sig.inputs {
-        match arg {
-            FnArg::Typed(t) => {
-                let arg_name = format!("{}", t.pat.to_token_stream());
-
-                if let [att,..] = t.attrs.as_slice() {
-                    println!("arg attrs: {:?}", att);
-                }
-
-                let ident = Ident::new(&arg_name, Span::call_site());
-                fn_arg_ident_vec.push(ident);
-            }
-            _ => {}
-        }
-    }
-
-    fn_arg_ident_vec
-}
-
 pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
     let mut return_ty = target_fn.sig.output.to_token_stream();
     match &target_fn.sig.output {
@@ -51,13 +23,7 @@ pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
     return_ty
 }
 
-/// TODO body method path_variable
-
-// impl ToTokens for http::Method {
-//     fn to_tokens(&self, tokens: &mut TokenStream) {
-//         unimplemented!()
-//     }
-// }
+/// TODO support path_variable
 
 pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -> TokenStream {
     let mut input = syn::parse_macro_input!(item as syn::ItemFn);
@@ -106,37 +72,70 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
         .map(|x| x.var.clone())
         .collect();
 
-    let stream = quote! {
+    let return_ty_str = format!("{}", return_ty);
+    let is_string = return_ty_str.starts_with("Result < String,");
 
+    let stream = if is_string {
+        quote! {
+            #(#attrs)*
+            #vis #sig {
+                use std::str::FromStr;
+                use http::Method;
+                use url::Url;
 
-        #(#attrs)*
-        #vis #sig {
-            use std::str::FromStr;
-            use http::Method;
-            use url::Url;
+                let url = format!("{}", #url);
+                let client = reqwest::Client::new();
 
-            let url = format!("{}", #url);
-            let client = reqwest::Client::new();
+                let method = Method::from_str(#method).unwrap();
+                let mut reqb = client.request(method, Url::parse(url.as_str()).unwrap());
 
-            let method = Method::from_str(#method).unwrap();
-            let mut reqb = client.request(method, Url::parse(url.as_str()).unwrap());
+                #(
+                    reqb = reqb.header(#header_name, #header_value);
+                )*
 
-            #(
-                reqb = reqb.header(#header_name, #header_value);
-            )*
+                #(
+                    reqb = reqb.query(&[(#param_name, #param_value),]);
+                )*
 
-            #(
-                reqb = reqb.query(&[(#param_name, #param_value),]);
-            )*
+                #(
+                    reqb = reqb.json(#body_value);
+                )*
 
-            #(
-                reqb = reqb.json(#body_value);
-            )*
+                let resp: #return_ty  = reqb.send().await?.text().await;
 
+                resp
+            }
+        }
+    } else {
+        quote! {
+            #(#attrs)*
+            #vis #sig {
+                use std::str::FromStr;
+                use http::Method;
+                use url::Url;
 
-            let resp: #return_ty = reqb.send().await?.json().await;
+                let url = format!("{}", #url);
+                let client = reqwest::Client::new();
 
-            resp
+                let method = Method::from_str(#method).unwrap();
+                let mut reqb = client.request(method, Url::parse(url.as_str()).unwrap());
+
+                #(
+                    reqb = reqb.header(#header_name, #header_value);
+                )*
+
+                #(
+                    reqb = reqb.query(&[(#param_name, #param_value),]);
+                )*
+
+                #(
+                    reqb = reqb.json(#body_value);
+                )*
+
+                let resp: #return_ty  = reqb.send().await?.json().await;
+
+                resp
+            }
         }
     };
 

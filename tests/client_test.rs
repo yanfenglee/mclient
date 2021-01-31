@@ -98,17 +98,16 @@ async fn test_post_body() -> Result<(), Error> {
 
     assert_eq!(res.id, 100);
 
-    // todo support return string
-    // #[post("http://127.0.0.1:31418/login")]
-    // async fn login2(login: &Login) -> Result<String, Error> {}
-    //
-    // let res = login2(&Login {
-    //     id: 0,
-    //     name: "lyf".to_string(),
-    //     password: "123456".to_string(),
-    // }).await?;
-    //
-    // assert_eq!(res, r#"{"id":100,"name":"","password":""}"#);
+    #[post("http://127.0.0.1:31418/login")]
+    async fn login2(login: &Login) -> Result<String, Error> {}
+
+    let res = login2(&Login {
+        id: 0,
+        name: "lyf".to_string(),
+        password: "123456".to_string(),
+    }).await?;
+
+    assert_eq!(res, r#"{"id":100,"name":"","password":""}"#);
 
     Ok(())
 }
