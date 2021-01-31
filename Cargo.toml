@@ -1,6 +1,6 @@
 [package]
 name = "mclient"
-version = "0.1.1"
+version = "0.1.2"
 keywords = ["http", "request", "client"]
 categories = ["web-programming::http-client"]
 repository = "https://github.com/yanfenglee/mclient"
@@ -13,7 +13,7 @@ edition = "2018"
 
 
 [dependencies]
-mclient_macro = {version = "0.1.1", path = "mclient_macro"}
+mclient_macro = {version = "0.1.2", path = "mclient_macro"}
 
 reqwest = { version = "0.11", features = ["json"] }
 tokio = { version = "1", features = ["full"] }

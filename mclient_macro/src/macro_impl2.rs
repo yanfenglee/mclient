@@ -168,7 +168,7 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
         }
     };
 
-    println!("............gen macro get :\n {}", stream);
+    //println!("............gen macro get :\n {}", stream);
 
     stream.into()
 }

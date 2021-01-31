@@ -246,33 +246,33 @@ async fn test_path_variable() -> Result<(), Error> {
     Ok(())
 }
 
-#[tokio::test]
-async fn test_generate() -> Result<(), Error> {
-    async fn path_test(name1: String, value: i32) -> Result<String, Error>
-    {
-        use std::str::FromStr;
-        use http::Method;
-        use url::Url;
-        use std::collections::HashMap;
-        use mclient;
-
-        let url = format!("{}", "https://httpbin.org/cookies/set/{name}/{value}");
-        let mut path_variables: HashMap<&str, String> = HashMap::new();
-        path_variables.insert("name", format!("{}", name1));
-        path_variables.insert("value", format!("{}", value));
-
-        let url = mclient::str_utils::replace_named(url.as_str(), &path_variables);
-        println!("url: {}", url);
-
-        let client = reqwest::Client::new();
-        let method = Method::from_str("GET").unwrap();
-        let mut reqb = client.request(method, Url::parse(url.as_str()).unwrap());
-        let resp: Result<String, Error> = reqb.send().await?.text().await;
-
-        resp
-    }
-
-    let res = path_test("asdf".to_string(), 123).await?;
-    println!("{}", res);
-    Ok(())
-}
+// #[tokio::test]
+// async fn test_generate() -> Result<(), Error> {
+//     async fn path_test(name1: String, value: i32) -> Result<String, Error>
+//     {
+//         use std::str::FromStr;
+//         use http::Method;
+//         use url::Url;
+//         use std::collections::HashMap;
+//         use mclient;
+//
+//         let url = format!("{}", "https://httpbin.org/cookies/set/{name}/{value}");
+//         let mut path_variables: HashMap<&str, String> = HashMap::new();
+//         path_variables.insert("name", format!("{}", name1));
+//         path_variables.insert("value", format!("{}", value));
+//
+//         let url = mclient::str_utils::replace_named(url.as_str(), &path_variables);
+//         println!("url: {}", url);
+//
+//         let client = reqwest::Client::new();
+//         let method = Method::from_str("GET").unwrap();
+//         let mut reqb = client.request(method, Url::parse(url.as_str()).unwrap());
+//         let resp: Result<String, Error> = reqb.send().await?.text().await;
+//
+//         resp
+//     }
+//
+//     let _res = path_test("asdf".to_string(), 123).await?;
+//     println!("{}", res);
+//     Ok(())
+// }
