@@ -1,27 +1,12 @@
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(unused_assignments)]
+#![allow(unused_must_use)]
+#![forbid(unsafe_code)]
 
-mod utils;
-mod symbol;
-mod macro_impl2;
-mod str_utils;
+pub mod str_utils;
 
-use proc_macro::{TokenStream};
+#[macro_use]
+extern crate mclient_macro;
 
-#[proc_macro_attribute]
-pub fn get(args: TokenStream, item: TokenStream) -> TokenStream {
-    macro_impl2::request_impl("GET", args, item)
-}
-
-#[proc_macro_attribute]
-pub fn post(args: TokenStream, item: TokenStream) -> TokenStream {
-    macro_impl2::request_impl("POST", args, item)
-}
-
-#[proc_macro_attribute]
-pub fn put(args: TokenStream, item: TokenStream) -> TokenStream {
-    macro_impl2::request_impl("PUT", args, item)
-}
-
-#[proc_macro_attribute]
-pub fn delete(args: TokenStream, item: TokenStream) -> TokenStream {
-    macro_impl2::request_impl("DELETE", args, item)
-}
+pub use mclient_macro::{get, post, put, delete};

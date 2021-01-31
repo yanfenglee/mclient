@@ -11,14 +11,9 @@ readme = "README.md"
 license = "MIT"
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[lib]
-proc-macro = true
 
 [dependencies]
-proc-macro2 = "1.0"
-quote = "1.0"
-syn = { version = "1.0", features = ["full", "visit-mut"] }
+mclient_macro = {version = "0.1.1", path = "mclient_macro"}
 
 reqwest = { version = "0.11", features = ["json"] }
 tokio = { version = "1", features = ["full"] }
@@ -34,11 +29,6 @@ bytes = "1.0"
 regex = "1.4"
 
 [dev-dependencies]
-rustversion = "1.0"
-tracing = "0.1.14"
-tracing-attributes = "0.1.8"
-tracing-futures = "0.2"
-trybuild = { version = "1.0.19", features = ["diff"] }
 
 hyper = { version = "0.14", default-features = false, features = ["tcp", "stream", "http1", "http2", "client", "server"] }
 

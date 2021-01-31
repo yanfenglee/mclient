@@ -88,6 +88,7 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
                 use http::Method;
                 use url::Url;
                 use std::collections::HashMap;
+                use mclient;
 
                 let url = format!("{}", #url);
 
@@ -97,7 +98,7 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
                     path_variables.insert(#path_name, #path_value);
                 )*
 
-                //let url = str_utils::replace_named(url, &path_variables);
+                let url = mclient::str_utils::replace_named(url.as_str(), &path_variables);
 
                 // begin build request
                 let client = reqwest::Client::new();
@@ -129,8 +130,20 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
                 use std::str::FromStr;
                 use http::Method;
                 use url::Url;
+                use std::collections::HashMap;
+                use mclient;
 
                 let url = format!("{}", #url);
+
+                // process path variable
+                let mut path_variables: HashMap<&str,&str> = HashMap::new();
+                #(
+                    path_variables.insert(#path_name, #path_value);
+                )*
+
+                let url = mclient::str_utils::replace_named(url.as_str(), &path_variables);
+
+                // begin build request
                 let client = reqwest::Client::new();
 
                 let method = Method::from_str(#method).unwrap();

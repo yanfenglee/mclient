@@ -62,18 +62,16 @@ async fn test_get_with_body() -> Result<(), Error> {
 
     assert_eq!(res.id, 100);
 
-    // todo return string support
-    //
-    // #[get2("http://127.0.0.1:31420/login")]
-    // async fn login2(#[body]login: &Login) -> Result<String, Error> {}
-    //
-    // let res = login2(&Login {
-    //     id: 0,
-    //     name: "lyf".to_string(),
-    //     password: "123456".to_string(),
-    // }).await?;
-    //
-    // assert_eq!(res, r#"{"id":100,"name":"","password":""}"#);
+    #[get("http://127.0.0.1:31420/login")]
+    async fn login2(#[body]login: &Login) -> Result<String, Error> {}
+
+    let res = login2(&Login {
+        id: 0,
+        name: "lyf".to_string(),
+        password: "123456".to_string(),
+    }).await?;
+
+    assert_eq!(res, r#"{"id":100,"name":"","password":""}"#);
 
     Ok(())
 }
