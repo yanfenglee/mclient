@@ -50,7 +50,7 @@ async fn get_with_query_param() -> Result<(), Error> {
 
 #[tokio::test]
 async fn get_with_query_param2() -> Result<(), Error> {
-    let _server = server::http(31417, move |req| async move {
+    let _server = server::http(31419, move |req| async move {
         assert_eq!(req.uri().path_and_query().unwrap().as_str(), "/path/sub?param1=1&param2=2&param3=hello");
         assert_eq!(req.headers().get("token").unwrap(), "xxx");
 
@@ -59,11 +59,47 @@ async fn get_with_query_param2() -> Result<(), Error> {
         http::Response::new(serde_json::to_string(&login).unwrap().into())
     });
 
-    #[get2("http://127.0.0.1:31417/path/sub")]
+    #[get2("http://127.0.0.1:31419/path/sub")]
     async fn get_test2(#[param("param1")]param1: i32, #[param]param2: i64, #[param]param3: String, #[header]token: String) -> Result<Login, Error> {}
 
     let res = get_test2(1, 2, "hello".to_string(), "xxx".to_string()).await?;
     assert_eq!(res.id, 100);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_get_with_body() -> Result<(), Error> {
+    let _server = server::http(31420, move |_req| async move {
+        let login = Login { id: 100, name: "".to_string(), password: "".to_string() };
+
+        http::Response::new(serde_json::to_string(&login).unwrap().into())
+    });
+
+
+    #[get2("http://127.0.0.1:31420/login")]
+    async fn login(#[body]login: &Login) -> Result<Login, Error> {}
+
+    let res = login(&Login {
+        id: 0,
+        name: "lyf".to_string(),
+        password: "123456".to_string(),
+    }).await?;
+
+    assert_eq!(res.id, 100);
+
+    // todo return string support
+    //
+    // #[get2("http://127.0.0.1:31420/login")]
+    // async fn login2(#[body]login: &Login) -> Result<String, Error> {}
+    //
+    // let res = login2(&Login {
+    //     id: 0,
+    //     name: "lyf".to_string(),
+    //     password: "123456".to_string(),
+    // }).await?;
+    //
+    // assert_eq!(res, r#"{"id":100,"name":"","password":""}"#);
 
     Ok(())
 }
@@ -201,7 +237,7 @@ async fn test_request_raw() -> Result<(), Error> {
     let mut reqb = reqwest::Client::builder()
         .build()
         .expect("client builder")
-        .request(Method::POST, Url::parse(url.as_str()).unwrap());
+        .request(Method::GET, Url::parse(url.as_str()).unwrap());
 
     reqb = reqb.header("token", "tokenxxx");
     reqb = reqb.query(&[("a", 3), ("b", 4), ]);

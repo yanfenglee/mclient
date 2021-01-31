@@ -7,7 +7,7 @@ use proc_macro2::{Ident, Span};
 use quote::{quote, ToTokens};
 use syn::{ItemFn, FnArg, ReturnType};
 use crate::utils::parse_fn_args;
-use crate::symbol::{HEADER, PARAM};
+use crate::symbol::{HEADER, PARAM, BODY};
 
 
 pub(crate) fn get_fn_args(target_fn: &mut ItemFn) -> Vec<Ident> {
@@ -49,6 +49,7 @@ pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
     return_ty
 }
 
+/// TODO body method path_variable
 
 pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
     let mut input = syn::parse_macro_input!(item as syn::ItemFn);
@@ -91,7 +92,12 @@ pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
         .map(|x| x.var.clone())
         .collect();
 
-    //let header = fn_args.
+    // TODO constrain only one json body?
+    let body_value: Vec<syn::Ident> = fn_args.iter()
+        .filter(|x| x.path1 == BODY )
+        .map(|x| x.var.clone())
+        .collect();
+
     let stream = quote! {
 
         #(#attrs)*
@@ -107,6 +113,10 @@ pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
 
             #(
                 reqb = reqb.query(&[(#param_name, #param_value),]);
+            )*
+
+            #(
+                reqb = reqb.json(#body_value);
             )*
 
 
