@@ -99,7 +99,7 @@ async fn test_post_body() -> Result<(), Error> {
     assert_eq!(res.id, 100);
 
     #[post("http://127.0.0.1:31418/login")]
-    async fn login2(login: &Login) -> Result<String, Error> {}
+    async fn login2(#[body]login: &Login) -> Result<String, Error> {}
 
     let res = login2(&Login {
         id: 0,

@@ -1,12 +1,9 @@
-use syn::{Attribute, ItemFn, FnArg, NestedMeta::Meta, NestedMeta::Lit};
+use syn::{ItemFn, FnArg, NestedMeta::Meta, NestedMeta::Lit};
 use crate::symbol::{PATH, HEADER, PARAM, Symbol, BODY};
 use proc_macro2::{Ident, Span};
 use quote::ToTokens;
 use syn::Meta::NameValue;
 use syn::Meta::List;
-
-/// arg attrs: Attribute { pound_token: Pound, style: Outer, bracket_token: Bracket, path: Path { leading_colon: None, segments: [PathSegment { ident: Ident { ident: "path", span: #0 bytes(802..806) }, arguments: None }] }, tokens: TokenStream [Group { delimiter: Parenthesis, stream: TokenStream [Literal { kind: Str, symbol: "pathtest", suffix: None, span: #0 bytes(807..817) }], span: #0 bytes(806..818) }] }
-/// arg attrs: Attribute { pound_token: Pound, style: Outer, bracket_token: Bracket, path: Path { leading_colon: None, segments: [PathSegment { ident: Ident { ident: "header", span: #0 bytes(834..840) }, arguments: None }] }, tokens: TokenStream [Group { delimiter: Parenthesis, stream: TokenStream [Literal { kind: Str, symbol: "x-token", suffix: None, span: #0 bytes(841..850) }], span: #0 bytes(840..851) }] }
 
 
 pub(crate) fn parse_fn_args(item: &mut ItemFn) -> Vec<ReqArgAttr> {
@@ -54,10 +51,6 @@ pub(crate) fn parse_one_arg(arg: &mut FnArg) -> Option<ReqArgAttr> {
         let ident = Ident::new(&var_name, Span::call_site());
 
         for att in attrs.iter() {
-            println!("attr path: {:?}", att.path);
-            if att.path == HEADER {
-                println!("++++++++++header")
-            }
 
             let mut req_arg = ReqArgAttr {
                 path1: to_symbol(&att.path)?,

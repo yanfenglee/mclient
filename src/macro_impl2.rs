@@ -1,15 +1,9 @@
-// mod route;
 extern crate proc_macro;
-
 use proc_macro::{TokenStream};
-use proc_macro2::{Ident, Span};
-
 use quote::{quote, ToTokens};
-use syn::{ItemFn, FnArg, ReturnType};
+use syn::{ItemFn, ReturnType};
 use crate::utils::parse_fn_args;
 use crate::symbol::{HEADER, PARAM, BODY};
-use http::Method;
-use std::str::FromStr;
 
 pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
     let mut return_ty = target_fn.sig.output.to_token_stream();
@@ -139,13 +133,7 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
         }
     };
 
-    println!("............gen macro get :\n {}", stream);
+    //println!("............gen macro get :\n {}", stream);
 
     stream.into()
-}
-
-#[test]
-fn test() {
-    let method = Method::from_str("GET").unwrap();
-    println!("parse: {:?}", method);
 }

@@ -10,12 +10,6 @@ pub const PARAM: Symbol = Symbol("param");
 pub const PATH: Symbol = Symbol("path");
 pub const BODY: Symbol = Symbol("body");
 
-/// support http method tags
-pub const GET: Symbol = Symbol("get");
-pub const POST: Symbol = Symbol("post");
-pub const PUT: Symbol = Symbol("put");
-pub const DELETE: Symbol = Symbol("delete");
-
 
 impl PartialEq<Symbol> for Ident {
     fn eq(&self, word: &Symbol) -> bool {
