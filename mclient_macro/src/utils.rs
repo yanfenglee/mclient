@@ -78,7 +78,7 @@ pub(crate) fn parse_one_arg(arg: &mut FnArg) -> Option<ReqArgAttr> {
                     }
 
                     _ => {
-                        println!("unknown: {:#?}", meta_item);
+                        println!("unknown type");
                     }
                 }
             }
