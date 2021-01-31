@@ -2,7 +2,7 @@
 use std::collections::HashMap;
 use regex::Regex;
 
-pub fn replace_named(src: &str, params: &HashMap<&str, &str>) -> String {
+pub fn replace_named(src: &str, params: &HashMap<&str, String>) -> String {
     let mut parts: Vec<&str> = vec![];
     let regex = Regex::new(r"\{([\w]+)\}").unwrap();
 
@@ -36,8 +36,8 @@ pub fn replace_named(src: &str, params: &HashMap<&str, &str>) -> String {
 #[test]
 fn test_replace() {
     let mut data = HashMap::new();
-    data.insert("name","lyf");
-    data.insert("id","123");
+    data.insert("name","lyf".to_string());
+    data.insert("id","123".to_string());
 
     assert_eq!(replace_named("/path1/{name}/hello/{id}/res", &data), "/path1/lyf/hello/123/res");
 

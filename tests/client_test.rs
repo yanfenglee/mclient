@@ -11,7 +11,7 @@ use url::Url;
 
 #[derive(Deserialize, Serialize, Debug)]
 struct ResA {
-    #[serde(rename="origin")]
+    #[serde(rename = "origin")]
     origin: String,
 }
 
@@ -223,5 +223,56 @@ async fn test_request_raw() -> Result<(), Error> {
 
     assert_eq!(res.id, 100);
 
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_path_variable() -> Result<(), Error> {
+    let _server = server::http(31419, move |req| async move {
+        assert_eq!(req.uri().path(), "/user/worker/123");
+        assert_eq!(req.headers().get("token").unwrap(), "xxx");
+
+        let login = Login { id: 100, name: "".to_string(), password: "".to_string() };
+
+        http::Response::new(serde_json::to_string(&login).unwrap().into())
+    });
+
+    #[get("http://127.0.0.1:31419/user/{type}/{id}")]
+    async fn get_path_variable(#[path("type")]type1: String, #[path]id: i32, #[header]token: String) -> Result<Login, Error> {}
+
+    let res = get_path_variable("worker".to_string(), 123, "xxx".to_string()).await?;
+    assert_eq!(res.id, 100);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_generate() -> Result<(), Error> {
+    async fn path_test(name1: String, value: i32) -> Result<String, Error>
+    {
+        use std::str::FromStr;
+        use http::Method;
+        use url::Url;
+        use std::collections::HashMap;
+        use mclient;
+
+        let url = format!("{}", "https://httpbin.org/cookies/set/{name}/{value}");
+        let mut path_variables: HashMap<&str, String> = HashMap::new();
+        path_variables.insert("name", format!("{}", name1));
+        path_variables.insert("value", format!("{}", value));
+
+        let url = mclient::str_utils::replace_named(url.as_str(), &path_variables);
+        println!("url: {}", url);
+
+        let client = reqwest::Client::new();
+        let method = Method::from_str("GET").unwrap();
+        let mut reqb = client.request(method, Url::parse(url.as_str()).unwrap());
+        let resp: Result<String, Error> = reqb.send().await?.text().await;
+
+        resp
+    }
+
+    let res = path_test("asdf".to_string(), 123).await?;
+    println!("{}", res);
     Ok(())
 }

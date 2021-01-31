@@ -93,9 +93,9 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
                 let url = format!("{}", #url);
 
                 // process path variable
-                let mut path_variables: HashMap<&str,&str> = HashMap::new();
+                let mut path_variables: HashMap<&str,String> = HashMap::new();
                 #(
-                    path_variables.insert(#path_name, #path_value);
+                    path_variables.insert(#path_name, format!("{}", #path_value));
                 )*
 
                 let url = mclient::str_utils::replace_named(url.as_str(), &path_variables);
@@ -136,9 +136,9 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
                 let url = format!("{}", #url);
 
                 // process path variable
-                let mut path_variables: HashMap<&str,&str> = HashMap::new();
+                let mut path_variables: HashMap<&str,String> = HashMap::new();
                 #(
-                    path_variables.insert(#path_name, #path_value);
+                    path_variables.insert(#path_name, format!("{}", #path_value));
                 )*
 
                 let url = mclient::str_utils::replace_named(url.as_str(), &path_variables);
@@ -168,7 +168,7 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
         }
     };
 
-    //println!("............gen macro get :\n {}", stream);
+    println!("............gen macro get :\n {}", stream);
 
     stream.into()
 }
