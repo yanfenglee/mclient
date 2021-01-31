@@ -12,7 +12,7 @@ struct PostData {
 async fn main() -> Result<(), Error> {
 
     #[post("https://httpbin.org/post")]
-    async fn post_data(data: &PostData) -> Result<String, Error> {}
+    async fn post_data(#[body]data: &PostData) -> Result<String, Error> {}
 
     let data = PostData {
         name: "jjj".to_string(),

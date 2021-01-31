@@ -43,9 +43,5 @@ hyper = { version = "0.14", default-features = false, features = ["tcp", "stream
 
 
 [[example]]
-name = "simple"
-path = "examples/simple.rs"
-
-[[example]]
 name = "post"
 path = "examples/post.rs"
