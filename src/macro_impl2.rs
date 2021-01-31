@@ -59,7 +59,7 @@ pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
 //     }
 // }
 
-pub(crate) fn get_impl(method: &str, args: TokenStream, item: TokenStream) -> TokenStream {
+pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -> TokenStream {
     let mut input = syn::parse_macro_input!(item as syn::ItemFn);
 
 
@@ -107,10 +107,14 @@ pub(crate) fn get_impl(method: &str, args: TokenStream, item: TokenStream) -> To
         .collect();
 
     let stream = quote! {
-        use std::str::FromStr;
+
 
         #(#attrs)*
         #vis #sig {
+            use std::str::FromStr;
+            use http::Method;
+            use url::Url;
+
             let url = format!("{}", #url);
             let client = reqwest::Client::new();
 
