@@ -8,6 +8,8 @@ use quote::{quote, ToTokens};
 use syn::{ItemFn, FnArg, ReturnType};
 use crate::utils::parse_fn_args;
 use crate::symbol::{HEADER, PARAM, BODY};
+use http::Method;
+use std::str::FromStr;
 
 
 pub(crate) fn get_fn_args(target_fn: &mut ItemFn) -> Vec<Ident> {
@@ -51,7 +53,13 @@ pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
 
 /// TODO body method path_variable
 
-pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
+// impl ToTokens for http::Method {
+//     fn to_tokens(&self, tokens: &mut TokenStream) {
+//         unimplemented!()
+//     }
+// }
+
+pub(crate) fn get_impl(method: &str, args: TokenStream, item: TokenStream) -> TokenStream {
     let mut input = syn::parse_macro_input!(item as syn::ItemFn);
 
 
@@ -64,7 +72,7 @@ pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
     let sig = &input.sig;
 
     let args = syn::parse_macro_input!(args as syn::AttributeArgs);
-    let path = args.get(0).unwrap().to_token_stream();
+    let url = args.get(0).unwrap().to_token_stream();
 
     if sig.asyncness.is_none() {
         return syn::Error::new_spanned(sig.fn_token, "only async fn is supported")
@@ -99,13 +107,15 @@ pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
         .collect();
 
     let stream = quote! {
+        use std::str::FromStr;
 
         #(#attrs)*
         #vis #sig {
-            let path = format!("{}", #path);
+            let url = format!("{}", #url);
             let client = reqwest::Client::new();
 
-            let mut reqb = client.get(&path);
+            let method = Method::from_str(#method).unwrap();
+            let mut reqb = client.request(method, Url::parse(url.as_str()).unwrap());
 
             #(
                 reqb = reqb.header(#header_name, #header_value);
@@ -129,4 +139,10 @@ pub(crate) fn get_impl(args: TokenStream, item: TokenStream) -> TokenStream {
     println!("............gen macro get :\n {}", stream);
 
     stream.into()
+}
+
+#[test]
+fn test() {
+    let method = Method::from_str("GET").unwrap();
+    println!("parse: {:?}", method);
 }

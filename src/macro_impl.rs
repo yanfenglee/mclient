@@ -5,7 +5,7 @@ use proc_macro::{TokenStream};
 use proc_macro2::{Ident, Span};
 
 use quote::{quote, ToTokens};
-use syn::{ItemFn, FnArg, ReturnType};
+use syn::{ItemFn, FnArg, ReturnType, AttributeArgs};
 use crate::utils::parse_fn_args;
 
 
