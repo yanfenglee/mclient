@@ -2,7 +2,7 @@
 use std::collections::HashMap;
 use regex::Regex;
 
-pub fn replace_named(src: &str, vals: &HashMap<&str, &str>) -> String {
+pub fn replace_named(src: &str, params: &HashMap<&str, &str>) -> String {
     let mut parts: Vec<&str> = vec![];
     let regex = Regex::new(r"\{([\w]+)\}").unwrap();
 
@@ -18,7 +18,7 @@ pub fn replace_named(src: &str, vals: &HashMap<&str, &str>) -> String {
         let arg = &src[*start..*end];
         let arg_name = &src[*start+1..*end-1];
 
-        match vals.get(arg_name) {
+        match params.get(arg_name) {
             Some(s) => parts.push(s),
             None => parts.push(arg),
         }

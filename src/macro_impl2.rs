@@ -3,7 +3,7 @@ use proc_macro::{TokenStream};
 use quote::{quote, ToTokens};
 use syn::{ItemFn, ReturnType};
 use crate::utils::parse_fn_args;
-use crate::symbol::{HEADER, PARAM, BODY};
+use crate::symbol::{HEADER, PARAM, BODY, PATH};
 
 pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
     let mut return_ty = target_fn.sig.output.to_token_stream();
@@ -16,8 +16,6 @@ pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
 
     return_ty
 }
-
-/// TODO support path_variable
 
 pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -> TokenStream {
     let mut input = syn::parse_macro_input!(item as syn::ItemFn);
@@ -40,6 +38,7 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
             .into();
     }
 
+    // for header
     let header_name: Vec<String> = fn_args.iter()
         .filter(|x| x.path1 == HEADER )
         .map(|x| x.value.clone())
@@ -50,6 +49,7 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
         .map(|x| x.var.clone())
         .collect();
 
+    // for query string
     let param_name: Vec<String> = fn_args.iter()
         .filter(|x| x.path1 == PARAM )
         .map(|x| x.value.clone())
@@ -60,7 +60,18 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
         .map(|x| x.var.clone())
         .collect();
 
-    // TODO constrain only one json body?
+    // for path variable
+    let path_name: Vec<String> = fn_args.iter()
+        .filter(|x| x.path1 == PATH )
+        .map(|x| x.value.clone())
+        .collect();
+
+    let path_value: Vec<syn::Ident> = fn_args.iter()
+        .filter(|x| x.path1 == PATH )
+        .map(|x| x.var.clone())
+        .collect();
+
+    // for request body TODO constrain only one json body?
     let body_value: Vec<syn::Ident> = fn_args.iter()
         .filter(|x| x.path1 == BODY )
         .map(|x| x.var.clone())
@@ -76,8 +87,19 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
                 use std::str::FromStr;
                 use http::Method;
                 use url::Url;
+                use std::collections::HashMap;
 
                 let url = format!("{}", #url);
+
+                // process path variable
+                let mut path_variables: HashMap<&str,&str> = HashMap::new();
+                #(
+                    path_variables.insert(#path_name, #path_value);
+                )*
+
+                //let url = str_utils::replace_named(url, &path_variables);
+
+                // begin build request
                 let client = reqwest::Client::new();
 
                 let method = Method::from_str(#method).unwrap();
