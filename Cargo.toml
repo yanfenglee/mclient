@@ -31,6 +31,7 @@ serde_urlencoded = "0.7"
 http = "0.2"
 url = "2.2"
 bytes = "1.0"
+regex = "1.4"
 
 [dev-dependencies]
 rustversion = "1.0"

@@ -2,6 +2,7 @@
 mod utils;
 mod symbol;
 mod macro_impl2;
+mod str_utils;
 
 use proc_macro::{TokenStream};
 
