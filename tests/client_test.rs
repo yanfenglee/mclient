@@ -24,7 +24,7 @@ struct Login {
 
 #[tokio::test]
 async fn get_with_query_param2() -> Result<(), Error> {
-    let _server = server::http(31419, move |req| async move {
+    let _server = server::http(31431, move |req| async move {
         assert_eq!(req.uri().path_and_query().unwrap().as_str(), "/path/sub?param1=1&param2=2&param3=hello");
         assert_eq!(req.headers().get("token").unwrap(), "xxx");
 
@@ -33,7 +33,7 @@ async fn get_with_query_param2() -> Result<(), Error> {
         http::Response::new(serde_json::to_string(&login).unwrap().into())
     });
 
-    #[get("http://127.0.0.1:31419/path/sub")]
+    #[get("http://127.0.0.1:31431/path/sub")]
     async fn get_test2(#[param("param1")]param1: i32, #[param]param2: i64, #[param]param3: String, #[header]token: String) -> Result<Login, Error> {}
 
     let res = get_test2(1, 2, "hello".to_string(), "xxx".to_string()).await?;
