@@ -1,4 +1,5 @@
 extern crate proc_macro;
+
 use proc_macro::{TokenStream};
 use quote::{quote, ToTokens};
 use syn::{ItemFn, ReturnType};
@@ -40,131 +41,93 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
 
     // for header
     let header_name: Vec<String> = fn_args.iter()
-        .filter(|x| x.path1 == HEADER )
+        .filter(|x| x.path1 == HEADER)
         .map(|x| x.value.clone())
         .collect();
 
     let header_value: Vec<syn::Ident> = fn_args.iter()
-        .filter(|x| x.path1 == HEADER )
+        .filter(|x| x.path1 == HEADER)
         .map(|x| x.var.clone())
         .collect();
 
     // for query string
     let param_name: Vec<String> = fn_args.iter()
-        .filter(|x| x.path1 == PARAM )
+        .filter(|x| x.path1 == PARAM)
         .map(|x| x.value.clone())
         .collect();
 
     let param_value: Vec<syn::Ident> = fn_args.iter()
-        .filter(|x| x.path1 == PARAM )
+        .filter(|x| x.path1 == PARAM)
         .map(|x| x.var.clone())
         .collect();
 
     // for path variable
     let path_name: Vec<String> = fn_args.iter()
-        .filter(|x| x.path1 == PATH )
+        .filter(|x| x.path1 == PATH)
         .map(|x| x.value.clone())
         .collect();
 
     let path_value: Vec<syn::Ident> = fn_args.iter()
-        .filter(|x| x.path1 == PATH )
+        .filter(|x| x.path1 == PATH)
         .map(|x| x.var.clone())
         .collect();
 
     // for request body TODO constrain only one json body?
     let body_value: Vec<syn::Ident> = fn_args.iter()
-        .filter(|x| x.path1 == BODY )
+        .filter(|x| x.path1 == BODY)
         .map(|x| x.var.clone())
         .collect();
 
     let return_ty_str = format!("{}", return_ty);
     let is_string = return_ty_str.starts_with("Result < String,");
 
-    let stream = if is_string {
-        quote! {
-            #(#attrs)*
-            #vis #sig {
-                use std::str::FromStr;
-                use http::Method;
-                use url::Url;
-                use std::collections::HashMap;
-                use mclient;
-
-                let url = format!("{}", #url);
-
-                // process path variable
-                let mut path_variables: HashMap<&str,String> = HashMap::new();
-                #(
-                    path_variables.insert(#path_name, format!("{}", #path_value));
-                )*
-
-                let url = mclient::str_utils::replace_named(url.as_str(), &path_variables);
-
-                // begin build request
-                let client = reqwest::Client::new();
-
-                let method = Method::from_str(#method).unwrap();
-                let mut reqb = client.request(method, Url::parse(url.as_str()).unwrap());
-
-                #(
-                    reqb = reqb.header(#header_name, #header_value);
-                )*
-
-                #(
-                    reqb = reqb.query(&[(#param_name, #param_value),]);
-                )*
-
-                #(
-                    reqb = reqb.json(#body_value);
-                )*
-
-                let resp: #return_ty  = reqb.send().await?.text().await;
-
-                resp
-            }
-        }
+    let ret_fn = if is_string {
+        quote! {text}
     } else {
-        quote! {
-            #(#attrs)*
-            #vis #sig {
-                use std::str::FromStr;
-                use http::Method;
-                use url::Url;
-                use std::collections::HashMap;
-                use mclient;
+        quote! {json}
+    };
 
-                let url = format!("{}", #url);
+    let stream = quote! {
 
-                // process path variable
-                let mut path_variables: HashMap<&str,String> = HashMap::new();
-                #(
-                    path_variables.insert(#path_name, format!("{}", #path_value));
-                )*
+        #(#attrs)*
+        #vis #sig {
+            use std::str::FromStr;
+            use http::Method;
+            use url::Url;
+            use std::collections::HashMap;
+            use mclient;
 
-                let url = mclient::str_utils::replace_named(url.as_str(), &path_variables);
+            let url = format!("{}", #url);
 
-                // begin build request
-                let client = reqwest::Client::new();
+            // process path variable
+            let mut path_variables: HashMap<&str,String> = HashMap::new();
+            #(
+                path_variables.insert(#path_name, format!("{}", #path_value));
+            )*
 
-                let method = Method::from_str(#method).unwrap();
-                let mut reqb = client.request(method, Url::parse(url.as_str()).unwrap());
+            let url = mclient::str_utils::replace_named(url.as_str(), &path_variables);
 
-                #(
-                    reqb = reqb.header(#header_name, #header_value);
-                )*
+            // begin build request
+            let client = reqwest::Client::new();
 
-                #(
-                    reqb = reqb.query(&[(#param_name, #param_value),]);
-                )*
+            let method = Method::from_str(#method).unwrap();
+            let mut reqb = client.request(method, Url::parse(url.as_str()).unwrap());
 
-                #(
-                    reqb = reqb.json(#body_value);
-                )*
+            #(
+                reqb = reqb.header(#header_name, #header_value);
+            )*
 
-                let resp: #return_ty  = reqb.send().await?.json().await;
+            #(
+                reqb = reqb.query(&[(#param_name, #param_value),]);
+            )*
 
-                resp
-            }
+            #(
+                reqb = reqb.json(#body_value);
+            )*
+
+            let resp: #return_ty  = reqb.send().await?.#ret_fn().await;
+
+            resp
         }
     };
 
