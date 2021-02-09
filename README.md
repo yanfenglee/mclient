@@ -3,8 +3,7 @@ macro based http client for rust
 
 ### examples
 ```rust
-use mclient::{post};
-use reqwest::{Error};
+use mclient::{get, post, Error};
 use serde::{Serialize};
 
 #[derive(Serialize, Debug)]
