@@ -92,8 +92,8 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
         #(#attrs)*
         #vis #sig {
             use std::str::FromStr;
-            use http::Method;
-            use url::Url;
+            //use http::Method;
+            //use url::Url;
             use std::collections::HashMap;
             use mclient;
 
@@ -108,10 +108,10 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
             let url = mclient::str_utils::replace_named(url.as_str(), &path_variables);
 
             // begin build request
-            let client = reqwest::Client::new();
+            let client = mclient::Client::new();
 
-            let method = Method::from_str(#method).unwrap();
-            let mut reqb = client.request(method, Url::parse(url.as_str()).unwrap());
+            let method = mclient::Method::from_str(#method).unwrap();
+            let mut reqb = client.request(method, mclient::Url::parse(url.as_str()).unwrap());
 
             #(
                 reqb = reqb.header(#header_name, #header_value);

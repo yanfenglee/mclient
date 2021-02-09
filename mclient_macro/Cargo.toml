@@ -1,6 +1,6 @@
 [package]
 name = "mclient_macro"
-version = "0.1.2"
+version = "0.1.3"
 keywords = ["http", "request", "client"]
 categories = ["web-programming::http-client"]
 repository = "https://github.com/yanfenglee/mclient"

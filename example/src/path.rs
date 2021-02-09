@@ -1,5 +1,4 @@
-use mclient::{get};
-use reqwest::{Error};
+use mclient::{get, Error};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {

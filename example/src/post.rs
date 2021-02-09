@@ -1,5 +1,4 @@
-use mclient::{post};
-use reqwest::{Error};
+use mclient::{post, Error};
 use serde::{Serialize};
 
 #[derive(Serialize, Debug)]

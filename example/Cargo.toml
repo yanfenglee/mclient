@@ -1,0 +1,33 @@
+[package]
+name = "example"
+version = "0.1.0"
+authors = ["yanfeng.li <86966524@qq.com>"]
+edition = "2018"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+mclient = {path = "../"}
+serde = "1.0"
+tokio = "1.2"
+
+[[bin]]
+name = "header"
+path = "src/header.rs"
+
+[[bin]]
+name = "path"
+path = "src/path.rs"
+
+[[bin]]
+name = "post"
+path = "src/post.rs"
+
+[[bin]]
+name = "simple"
+path = "src/simple.rs"
+
+[[bin]]
+name = "simple2"
+path = "src/simple2.rs"
