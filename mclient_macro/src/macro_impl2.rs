@@ -2,9 +2,12 @@ extern crate proc_macro;
 
 use proc_macro::{TokenStream};
 use quote::{quote, ToTokens};
-use syn::{ItemFn, ReturnType, Item, AttributeArgs};
+use syn::{ItemFn, ReturnType, Item, AttributeArgs, Meta};
 use crate::utils::parse_fn_args;
 use crate::symbol::{HEADER, PARAM, BODY, PATH};
+//use syn::NestedMeta::{Lit};
+use syn::NestedMeta::Lit;
+use syn::Lit::Str;
 
 pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
     let mut return_ty = target_fn.sig.output.to_token_stream();
@@ -136,7 +139,7 @@ pub(crate) fn request_gen(method: &str, url: &str, item_fn: &mut ItemFn) -> Toke
         }
     };
 
-    println!("............gen macro get :\n {}", stream);
+    //println!("............gen macro get :\n {}", stream);
 
     stream.into()
 }
@@ -150,10 +153,30 @@ pub(crate) fn mc_impl(args: TokenStream, item: TokenStream) -> TokenStream {
     println!("mod: {:?}", input);
 
     if let Item::Fn(item_fn) = &input.content.unwrap().1[0] {
-        println!("mod fn attrs: {:?}", item_fn.attrs.first().unwrap().parse_meta());
+        println!("mod fn attrs2: {:?}", item_fn.attrs.first().unwrap().parse_meta());
+        let attr = item_fn.attrs.first().unwrap().parse_meta().unwrap();
+        println!("path: {}", attr.path().get_ident().unwrap());
+        println!("tokenstream: {}", attr.to_token_stream());
+
+        let res = match attr {
+            Meta::Path(path) => None,
+
+            Meta::List(meta) => {
+                match meta.nested.first().unwrap() {
+                    Lit(Str(token)) => Some(token.value()),
+                    _ => None,
+                }
+            },
+
+            Meta::NameValue(meta) => None,
+        };
+
+        println!("match mata: {:?}", res);
     }
 
     let res = quote! {};
+
+    println!("mc gen:\n {}", res);
 
     res.into()
 }
