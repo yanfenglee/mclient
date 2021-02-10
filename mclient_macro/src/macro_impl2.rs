@@ -2,7 +2,7 @@ extern crate proc_macro;
 
 use proc_macro::{TokenStream};
 use quote::{quote, ToTokens};
-use syn::{ItemFn, ReturnType};
+use syn::{ItemFn, ReturnType, Item, AttributeArgs};
 use crate::utils::parse_fn_args;
 use crate::symbol::{HEADER, PARAM, BODY, PATH};
 
@@ -19,19 +19,26 @@ pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
 }
 
 pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -> TokenStream {
-    let mut input = syn::parse_macro_input!(item as syn::ItemFn);
-
-
-    let fn_args = parse_fn_args(&mut input);
-
-    let return_ty = find_return_type(&input);
-
-    let attrs = &input.attrs;
-    let vis = &input.vis;
-    let sig = &input.sig;
+    let mut item_fn = syn::parse_macro_input!(item as syn::ItemFn);
 
     let args = syn::parse_macro_input!(args as syn::AttributeArgs);
     let url = args.get(0).unwrap().to_token_stream();
+    let url = &format!("{}", url);
+    let url = &url[1..url.len()-1];
+    println!("asdfasdf: {}", url);
+
+    request_gen(method, url, &mut item_fn)
+}
+
+pub(crate) fn request_gen(method: &str, url: &str, item_fn: &mut ItemFn) -> TokenStream {
+
+    let fn_args = parse_fn_args(item_fn);
+
+    let return_ty = find_return_type(item_fn);
+
+    let attrs = &item_fn.attrs;
+    let vis = &item_fn.vis;
+    let sig = &item_fn.sig;
 
     if sig.asyncness.is_none() {
         return syn::Error::new_spanned(sig.fn_token, "only async fn is supported")
@@ -92,12 +99,8 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
         #(#attrs)*
         #vis #sig {
             use std::str::FromStr;
-            //use http::Method;
-            //use url::Url;
             use std::collections::HashMap;
             use mclient;
-
-            let url = format!("{}", #url);
 
             // process path variable
             let mut path_variables: HashMap<&str,String> = HashMap::new();
@@ -105,7 +108,9 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
                 path_variables.insert(#path_name, format!("{}", #path_value));
             )*
 
-            let url = mclient::str_utils::replace_named(url.as_str(), &path_variables);
+            let url = mclient::str_utils::replace_named(#url, &path_variables);
+
+            println!("url is : {}", url);
 
             // begin build request
             let client = mclient::Client::new();
@@ -131,7 +136,24 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
         }
     };
 
-    //println!("............gen macro get :\n {}", stream);
+    println!("............gen macro get :\n {}", stream);
 
     stream.into()
+}
+
+pub(crate) fn mc_impl(args: TokenStream, item: TokenStream) -> TokenStream {
+    let args = syn::parse_macro_input!(args as syn::AttributeArgs);
+    let url = args.get(0).unwrap().to_token_stream();
+    println!("url: {}", url);
+
+    let mut input = syn::parse_macro_input!(item as syn::ItemMod);
+    println!("mod: {:?}", input);
+
+    if let Item::Fn(item_fn) = &input.content.unwrap().1[0] {
+        println!("mod fn attrs: {:?}", item_fn.attrs.first().unwrap().parse_meta());
+    }
+
+    let res = quote! {};
+
+    res.into()
 }
