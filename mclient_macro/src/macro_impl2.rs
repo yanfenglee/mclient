@@ -8,6 +8,8 @@ use crate::symbol::{HEADER, PARAM, BODY, PATH};
 //use syn::NestedMeta::{Lit};
 use syn::NestedMeta::Lit;
 use syn::Lit::Str;
+use std::borrow::BorrowMut;
+use proc_macro2::TokenStream as TokenStream2;
 
 pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
     let mut return_ty = target_fn.sig.output.to_token_stream();
@@ -99,7 +101,7 @@ pub(crate) fn request_gen(method: &str, url: &str, item_fn: &mut ItemFn) -> Toke
 
     let stream = quote! {
 
-        #(#attrs)*
+        //#(#attrs)*
         #vis #sig {
             use std::str::FromStr;
             use std::collections::HashMap;
@@ -146,13 +148,18 @@ pub(crate) fn request_gen(method: &str, url: &str, item_fn: &mut ItemFn) -> Toke
 
 pub(crate) fn mc_impl(args: TokenStream, item: TokenStream) -> TokenStream {
     let args = syn::parse_macro_input!(args as syn::AttributeArgs);
-    let url = args.get(0).unwrap().to_token_stream();
+    let url = args.get(0).unwrap().to_token_stream().to_string();
+    let url = &url[1..url.len()-1];
     println!("url: {}", url);
 
-    let mut input = syn::parse_macro_input!(item as syn::ItemMod);
-    println!("mod: {:?}", input);
+    let mut item_mod = syn::parse_macro_input!(item as syn::ItemMod);
+    println!("mod: {:?}", item_mod);
+    let vis = &item_mod.vis;
+    let ident = &item_mod.ident;
 
-    if let Item::Fn(item_fn) = &input.content.unwrap().1[0] {
+    let mut path = None;
+    let mut item_fn1 = None;
+    if let Item::Fn(item_fn) = &item_mod.content.unwrap().1[0] {
         println!("mod fn attrs2: {:?}", item_fn.attrs.first().unwrap().parse_meta());
         let attr = item_fn.attrs.first().unwrap().parse_meta().unwrap();
         println!("path: {}", attr.path().get_ident().unwrap());
@@ -171,10 +178,20 @@ pub(crate) fn mc_impl(args: TokenStream, item: TokenStream) -> TokenStream {
             Meta::NameValue(meta) => None,
         };
 
-        println!("match mata: {:?}", res);
+        path = res;
+        item_fn1 = Some(item_fn.clone());
     }
 
-    let res = quote! {};
+    println!("match mata: {:?}", path);
+    let url = format!("{}{}", url, path.unwrap());
+
+    let func: TokenStream2 = request_gen("GET", url.as_str(), item_fn1.as_mut().unwrap()).into();
+
+    let res = quote! {
+        #vis mod #ident {
+            #func
+        }
+    };
 
     println!("mc gen:\n {}", res);
 
