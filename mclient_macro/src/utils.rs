@@ -26,6 +26,13 @@ pub(crate) struct ReqArgAttr {
     pub var: syn::Ident,
 }
 
+#[derive(Debug, Clone)]
+pub(crate) struct GenParam {
+    pub url: String,
+    pub method: String,
+    pub item_fn: ItemFn,
+}
+
 pub(crate) fn to_symbol(path: &syn::Path) -> Option<Symbol> {
     if path == HEADER {
         Some(HEADER)

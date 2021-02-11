@@ -3,7 +3,7 @@ extern crate proc_macro;
 use proc_macro::{TokenStream};
 use quote::{quote, ToTokens};
 use syn::{ItemFn, ReturnType, Item, AttributeArgs, Meta, ImplItem};
-use crate::utils::parse_fn_args;
+use crate::utils::{parse_fn_args, GenParam};
 use crate::symbol::{HEADER, PARAM, BODY, PATH};
 //use syn::NestedMeta::{Lit};
 use syn::NestedMeta::Lit;
@@ -20,48 +20,53 @@ pub(crate) fn mc_impl(args: TokenStream, item: TokenStream) -> TokenStream {
 
     let mut item_impl = syn::parse_macro_input!(item as syn::ItemImpl);
     println!("mod: {:?}", item_impl);
-    //let ident = &item_impl.ident;
 
-    let mut path = None;
-    let mut item_fn1 = None;
-    if let ImplItem::Method(impl_method) = &item_impl.items[0] {
-        println!("mod fn attrs2: {:?}", impl_method.attrs.first().unwrap().parse_meta());
-        let attr = impl_method.attrs.first().unwrap().parse_meta().unwrap();
-        println!("path: {}", attr.path().get_ident().unwrap());
-        println!("tokenstream: {}", attr.to_token_stream());
+    let mut fn_tokens = vec![];
+    for item in &item_impl.items {
+        if let ImplItem::Method(impl_method) = item {
+            println!("mod fn attrs2: {:?}", impl_method.attrs.first().unwrap().parse_meta());
+            let attr = impl_method.attrs.first().unwrap().parse_meta().unwrap();
+            println!("path: {}", attr.path().get_ident().unwrap());
+            println!("tokenstream: {}", attr.to_token_stream());
 
-        item_fn1 = Some(ItemFn {
-            attrs: impl_method.attrs.clone(),
-            vis: impl_method.vis.clone(),
-            sig: impl_method.sig.clone(),
-            block: Box::from(impl_method.block.clone()),
-        });
+            let path = match attr {
+                Meta::Path(path) => None,
 
-        let res = match attr {
-            Meta::Path(path) => None,
+                Meta::List(meta) => {
+                    match meta.nested.first().unwrap() {
+                        Lit(Str(token)) => Some(token.value()),
+                        _ => None,
+                    }
+                },
 
-            Meta::List(meta) => {
-                match meta.nested.first().unwrap() {
-                    Lit(Str(token)) => Some(token.value()),
-                    _ => None,
-                }
-            },
+                Meta::NameValue(meta) => None,
+            };
 
-            Meta::NameValue(meta) => None,
-        };
+            let url = format!("{}{}", url, path.unwrap());
 
-        path = res;
-        //item_fn1 = Some(item_fn.clone());
+            let item_fn = ItemFn {
+                attrs: impl_method.attrs.clone(),
+                vis: impl_method.vis.clone(),
+                sig: impl_method.sig.clone(),
+                block: Box::from(impl_method.block.clone()),
+            };
+
+            let method = "GET";
+
+            let mut param = GenParam {
+                url: url.to_string(),
+                method: method.to_string(),
+                item_fn,
+            };
+
+            let func: TokenStream2 = request_gen(&mut param).into();
+            fn_tokens.push(func);
+        }
     }
-
-    println!("match mata: {:?}", path);
-    let url = format!("{}{}", url, path.unwrap());
-
-    let func: TokenStream2 = request_gen("GET", url.as_str(), item_fn1.as_mut().unwrap()).into();
 
     let res = quote! {
         impl Car {
-            #func
+            #(#fn_tokens)*
         }
     };
 

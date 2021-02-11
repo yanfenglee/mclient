@@ -26,10 +26,10 @@ pub fn delete(args: TokenStream, item: TokenStream) -> TokenStream {
     macro_impl2::request_impl("DELETE", args, item)
 }
 
-#[proc_macro_attribute]
-pub fn mc(args: TokenStream, item: TokenStream) -> TokenStream {
-    macro_impl2::mc_impl(args, item)
-}
+// #[proc_macro_attribute]
+// pub fn mc(args: TokenStream, item: TokenStream) -> TokenStream {
+//     macro_impl2::mc_impl(args, item)
+// }
 
 #[proc_macro_attribute]
 pub fn mc2(args: TokenStream, item: TokenStream) -> TokenStream {

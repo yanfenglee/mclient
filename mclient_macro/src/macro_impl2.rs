@@ -3,7 +3,7 @@ extern crate proc_macro;
 use proc_macro::{TokenStream};
 use quote::{quote, ToTokens};
 use syn::{ItemFn, ReturnType, Item, AttributeArgs, Meta};
-use crate::utils::parse_fn_args;
+use crate::utils::{parse_fn_args, GenParam};
 use crate::symbol::{HEADER, PARAM, BODY, PATH};
 //use syn::NestedMeta::{Lit};
 use syn::NestedMeta::Lit;
@@ -32,10 +32,19 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
     let url = &url[1..url.len()-1];
     println!("asdfasdf: {}", url);
 
-    request_gen(method, url, &mut item_fn)
+    let mut param = GenParam {
+        url: url.to_string(),
+        method: method.to_string(),
+        item_fn: item_fn,
+    };
+
+    request_gen(&mut param)
 }
 
-pub(crate) fn request_gen(method: &str, url: &str, item_fn: &mut ItemFn) -> TokenStream {
+pub(crate) fn request_gen(param: &mut GenParam) -> TokenStream {
+    let method = param.method.as_str();
+    let url = param.url.as_str();
+    let item_fn = &mut param.item_fn;
 
     let fn_args = parse_fn_args(item_fn);
 
@@ -145,55 +154,55 @@ pub(crate) fn request_gen(method: &str, url: &str, item_fn: &mut ItemFn) -> Toke
 
     stream.into()
 }
-
-pub(crate) fn mc_impl(args: TokenStream, item: TokenStream) -> TokenStream {
-    let args = syn::parse_macro_input!(args as syn::AttributeArgs);
-    let url = args.get(0).unwrap().to_token_stream().to_string();
-    let url = &url[1..url.len()-1];
-    println!("url: {}", url);
-
-    let mut item_mod = syn::parse_macro_input!(item as syn::ItemMod);
-    println!("mod: {:?}", item_mod);
-    let vis = &item_mod.vis;
-    let ident = &item_mod.ident;
-
-    let mut path = None;
-    let mut item_fn1 = None;
-    if let Item::Fn(item_fn) = &item_mod.content.unwrap().1[0] {
-        println!("mod fn attrs2: {:?}", item_fn.attrs.first().unwrap().parse_meta());
-        let attr = item_fn.attrs.first().unwrap().parse_meta().unwrap();
-        println!("path: {}", attr.path().get_ident().unwrap());
-        println!("tokenstream: {}", attr.to_token_stream());
-
-        let res = match attr {
-            Meta::Path(path) => None,
-
-            Meta::List(meta) => {
-                match meta.nested.first().unwrap() {
-                    Lit(Str(token)) => Some(token.value()),
-                    _ => None,
-                }
-            },
-
-            Meta::NameValue(meta) => None,
-        };
-
-        path = res;
-        item_fn1 = Some(item_fn.clone());
-    }
-
-    println!("match mata: {:?}", path);
-    let url = format!("{}{}", url, path.unwrap());
-
-    let func: TokenStream2 = request_gen("GET", url.as_str(), item_fn1.as_mut().unwrap()).into();
-
-    let res = quote! {
-        #vis mod #ident {
-            #func
-        }
-    };
-
-    println!("mc gen:\n {}", res);
-
-    res.into()
-}
+//
+// pub(crate) fn mc_impl(args: TokenStream, item: TokenStream) -> TokenStream {
+//     let args = syn::parse_macro_input!(args as syn::AttributeArgs);
+//     let url = args.get(0).unwrap().to_token_stream().to_string();
+//     let url = &url[1..url.len()-1];
+//     println!("url: {}", url);
+//
+//     let mut item_mod = syn::parse_macro_input!(item as syn::ItemMod);
+//     println!("mod: {:?}", item_mod);
+//     let vis = &item_mod.vis;
+//     let ident = &item_mod.ident;
+//
+//     let mut path = None;
+//     let mut item_fn1 = None;
+//     if let Item::Fn(item_fn) = &item_mod.content.unwrap().1[0] {
+//         println!("mod fn attrs2: {:?}", item_fn.attrs.first().unwrap().parse_meta());
+//         let attr = item_fn.attrs.first().unwrap().parse_meta().unwrap();
+//         println!("path: {}", attr.path().get_ident().unwrap());
+//         println!("tokenstream: {}", attr.to_token_stream());
+//
+//         let res = match attr {
+//             Meta::Path(path) => None,
+//
+//             Meta::List(meta) => {
+//                 match meta.nested.first().unwrap() {
+//                     Lit(Str(token)) => Some(token.value()),
+//                     _ => None,
+//                 }
+//             },
+//
+//             Meta::NameValue(meta) => None,
+//         };
+//
+//         path = res;
+//         item_fn1 = Some(item_fn.clone());
+//     }
+//
+//     println!("match mata: {:?}", path);
+//     let url = format!("{}{}", url, path.unwrap());
+//
+//     let func: TokenStream2 = request_gen("GET", url.as_str(), item_fn1.as_mut().unwrap()).into();
+//
+//     let res = quote! {
+//         #vis mod #ident {
+//             #func
+//         }
+//     };
+//
+//     println!("mc gen:\n {}", res);
+//
+//     res.into()
+// }
