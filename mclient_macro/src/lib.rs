@@ -2,6 +2,7 @@
 mod utils;
 mod symbol;
 mod macro_impl2;
+mod macro_mc;
 
 use proc_macro::{TokenStream};
 
@@ -28,4 +29,9 @@ pub fn delete(args: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn mc(args: TokenStream, item: TokenStream) -> TokenStream {
     macro_impl2::mc_impl(args, item)
+}
+
+#[proc_macro_attribute]
+pub fn mc2(args: TokenStream, item: TokenStream) -> TokenStream {
+    macro_mc::mc_impl(args, item)
 }
