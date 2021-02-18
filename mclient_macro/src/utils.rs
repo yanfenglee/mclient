@@ -26,7 +26,7 @@ pub(crate) struct ReqArgAttr {
     pub var: syn::Ident,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub(crate) struct GenParam {
     pub url: String,
     pub method: String,

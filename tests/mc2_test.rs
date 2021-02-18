@@ -14,7 +14,7 @@ impl Host {
     pub async fn get_ip(#[param]param: i32) -> Result<String, Error> {}
 
     #[get("/ip")]
-    pub async fn get_ip2(#[param]param: i32) -> Result<String, Error> {}
+    pub async fn get_ip2(#[param]param: i32) -> Result<IP, Error> {}
 }
 
 #[tokio::test]
