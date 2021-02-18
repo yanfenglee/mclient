@@ -32,6 +32,6 @@ pub fn delete(args: TokenStream, item: TokenStream) -> TokenStream {
 // }
 
 #[proc_macro_attribute]
-pub fn mc2(args: TokenStream, item: TokenStream) -> TokenStream {
+pub fn mclient(args: TokenStream, item: TokenStream) -> TokenStream {
     macro_mc::mc_impl(args, item)
 }

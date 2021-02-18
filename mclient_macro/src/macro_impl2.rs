@@ -2,14 +2,14 @@ extern crate proc_macro;
 
 use proc_macro::{TokenStream};
 use quote::{quote, ToTokens};
-use syn::{ItemFn, ReturnType, Item, AttributeArgs, Meta};
+use syn::{ItemFn, ReturnType};
 use crate::utils::{parse_fn_args, GenParam};
 use crate::symbol::{HEADER, PARAM, BODY, PATH};
 //use syn::NestedMeta::{Lit};
-use syn::NestedMeta::Lit;
-use syn::Lit::Str;
-use std::borrow::BorrowMut;
-use proc_macro2::TokenStream as TokenStream2;
+//use syn::NestedMeta::Lit;
+//use syn::Lit::Str;
+//use std::borrow::BorrowMut;
+//use proc_macro2::TokenStream as TokenStream2;
 
 pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
     let mut return_ty = target_fn.sig.output.to_token_stream();
@@ -24,7 +24,7 @@ pub(crate) fn find_return_type(target_fn: &ItemFn) -> proc_macro2::TokenStream {
 }
 
 pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -> TokenStream {
-    let mut item_fn = syn::parse_macro_input!(item as syn::ItemFn);
+    let item_fn = syn::parse_macro_input!(item as syn::ItemFn);
 
     let args = syn::parse_macro_input!(args as syn::AttributeArgs);
     let url = args.get(0).unwrap().to_token_stream();
@@ -49,7 +49,7 @@ pub(crate) fn request_gen(param: &mut GenParam) -> TokenStream {
 
     let return_ty = find_return_type(item_fn);
 
-    let attrs = &item_fn.attrs;
+    //let attrs = &item_fn.attrs;
     let vis = &item_fn.vis;
     let sig = &item_fn.sig;
 

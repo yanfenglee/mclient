@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 extern crate proc_macro;
 
 use proc_macro::{TokenStream};
@@ -5,10 +7,9 @@ use quote::{quote, ToTokens};
 use syn::{ItemFn, ReturnType, Item, AttributeArgs, Meta, ImplItem, Path, Type};
 use crate::utils::{parse_fn_args, GenParam};
 use crate::symbol::{HEADER, PARAM, BODY, PATH};
-//use syn::NestedMeta::{Lit};
 use syn::NestedMeta::Lit;
 use syn::Lit::Str;
-use std::borrow::BorrowMut;
+//use std::borrow::BorrowMut;
 use proc_macro2::TokenStream as TokenStream2;
 use crate::macro_impl2::*;
 use std::ops::Deref;
@@ -19,7 +20,7 @@ pub(crate) fn mc_impl(args: TokenStream, item: TokenStream) -> TokenStream {
     let url = &url[1..url.len()-1];
 
     let mut item_impl = syn::parse_macro_input!(item as syn::ItemImpl);
-    println!("====== {:?}", item_impl.self_ty);
+    //println!("====== {:?}", item_impl.self_ty);
 
     let mut ty = None;
     if let Type::Path(ty_path) = item_impl.self_ty.deref() {
@@ -32,7 +33,7 @@ pub(crate) fn mc_impl(args: TokenStream, item: TokenStream) -> TokenStream {
         if let ImplItem::Method(impl_method) = item {
             let attr = impl_method.attrs.first().unwrap().parse_meta().unwrap();
 
-            println!("asdf-------: {:?}", attr);
+            //println!("asdf-------: {:?}", attr);
             let mut http_method = None;
             let path = match attr {
                 Meta::Path(path) => None,
@@ -59,7 +60,7 @@ pub(crate) fn mc_impl(args: TokenStream, item: TokenStream) -> TokenStream {
                 block: Box::from(impl_method.block.clone()),
             };
 
-            println!("+++++++++{:?}", http_method);
+            //println!("+++++++++{:?}", http_method);
 
             let method = http_method.unwrap().to_uppercase();
 

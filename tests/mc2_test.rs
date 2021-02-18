@@ -1,4 +1,4 @@
-use mclient::{mc2, get, Error};
+use mclient::{mclient, Error};
 use serde::{Deserialize};
 
 #[derive(Deserialize, Debug)]
@@ -8,7 +8,7 @@ struct IP {
 
 struct Host;
 
-#[mc2("https://httpbin.org")]
+#[mclient("https://httpbin.org")]
 impl Host {
     #[get("/ip")]
     pub async fn get_ip(#[param]param: i32) -> Result<String, Error> {}
