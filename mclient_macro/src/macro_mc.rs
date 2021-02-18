@@ -16,23 +16,23 @@ pub(crate) fn mc_impl(args: TokenStream, item: TokenStream) -> TokenStream {
     let args = syn::parse_macro_input!(args as syn::AttributeArgs);
     let url = args.get(0).unwrap().to_token_stream().to_string();
     let url = &url[1..url.len()-1];
-    println!("url: {}", url);
 
     let mut item_impl = syn::parse_macro_input!(item as syn::ItemImpl);
-    println!("mod: {:?}", item_impl);
 
     let mut fn_tokens = vec![];
     for item in &item_impl.items {
         if let ImplItem::Method(impl_method) = item {
-            println!("mod fn attrs2: {:?}", impl_method.attrs.first().unwrap().parse_meta());
             let attr = impl_method.attrs.first().unwrap().parse_meta().unwrap();
-            println!("path: {}", attr.path().get_ident().unwrap());
-            println!("tokenstream: {}", attr.to_token_stream());
 
+            println!("asdf-------: {:?}", attr);
+            let mut http_method = None;
             let path = match attr {
                 Meta::Path(path) => None,
 
                 Meta::List(meta) => {
+
+                    http_method = Some(meta.path.get_ident().unwrap().to_string());
+
                     match meta.nested.first().unwrap() {
                         Lit(Str(token)) => Some(token.value()),
                         _ => None,
@@ -51,7 +51,9 @@ pub(crate) fn mc_impl(args: TokenStream, item: TokenStream) -> TokenStream {
                 block: Box::from(impl_method.block.clone()),
             };
 
-            let method = "GET";
+            println!("+++++++++{:?}", http_method);
+
+            let method = http_method.unwrap().to_uppercase();
 
             let mut param = GenParam {
                 url: url.to_string(),
@@ -65,12 +67,12 @@ pub(crate) fn mc_impl(args: TokenStream, item: TokenStream) -> TokenStream {
     }
 
     let res = quote! {
-        impl Car {
+        impl Host {
             #(#fn_tokens)*
         }
     };
 
-    println!("mc gen:\n {}", res);
+    //println!("mc gen:\n {}", res);
 
     res.into()
 }

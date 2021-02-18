@@ -30,7 +30,6 @@ pub(crate) fn request_impl(method: &str, args: TokenStream, item: TokenStream) -
     let url = args.get(0).unwrap().to_token_stream();
     let url = &format!("{}", url);
     let url = &url[1..url.len()-1];
-    println!("asdfasdf: {}", url);
 
     let mut param = GenParam {
         url: url.to_string(),
@@ -123,8 +122,6 @@ pub(crate) fn request_gen(param: &mut GenParam) -> TokenStream {
             )*
 
             let url = mclient::str_utils::replace_named(#url, &path_variables);
-
-            println!("url is : {}", url);
 
             // begin build request
             let client = mclient::Client::new();
